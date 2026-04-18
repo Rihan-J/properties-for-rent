@@ -7,26 +7,29 @@ import { setTokenGetter, clearAuthState } from '@/lib/api';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [initialAuth] = useState(() => {
+    if (typeof window === 'undefined') {
+      return { user: null, token: null };
+    }
 
-  // Load state from localStorage on initial mount
-  useEffect(() => {
     const storedToken = localStorage.getItem('apnastay_token');
     const storedUser = localStorage.getItem('apnastay_user');
-    
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        localStorage.removeItem('apnastay_token');
-        localStorage.removeItem('apnastay_user');
-      }
+    if (!storedToken || !storedUser) {
+      return { user: null, token: null };
     }
-    setLoading(false);
-  }, []);
+
+    try {
+      return { token: storedToken, user: JSON.parse(storedUser) };
+    } catch {
+      localStorage.removeItem('apnastay_token');
+      localStorage.removeItem('apnastay_user');
+      return { user: null, token: null };
+    }
+  });
+
+  const [user, setUser] = useState(initialAuth.user);
+  const [token, setToken] = useState(initialAuth.token);
+  const [loading] = useState(false);
 
   // Register the token getter so Axios can read from state
   useEffect(() => {

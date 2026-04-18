@@ -2,6 +2,7 @@ const pool = require('../config/db');
 const { success, fail } = require('../utils/response');
 const { validatePagination } = require('../validators');
 const { deleteImage } = require('../utils/cloudinary');
+const { invalidatePropertyCaches } = require('../middleware/cache');
 
 // ─── Get All Properties (any status) ────────────────────
 
@@ -60,6 +61,7 @@ async function approveProperty(req, res, next) {
       [id]
     );
 
+    invalidatePropertyCaches();
     return success(res, { property: result.rows[0] });
   } catch (err) {
     next(err);
@@ -89,6 +91,7 @@ async function deleteProperty(req, res, next) {
 
     await pool.query('DELETE FROM properties WHERE id = $1', [id]);
 
+    invalidatePropertyCaches();
     return success(res, { message: 'Property deleted successfully' });
   } catch (err) {
     next(err);

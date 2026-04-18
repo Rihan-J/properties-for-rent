@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import api from '@/lib/api';
 import { getGoogleMapsUrl } from '@/lib/geo';
+import { getOptimizedImageUrl } from '@/lib/cloudinary';
 import MapSkeleton from '@/components/map/MapSkeleton';
 import PropertyDetailSkeleton from '@/components/skeletons/PropertyDetailSkeleton';
 
@@ -137,8 +138,9 @@ export default function PropertyDetailPage() {
           {/* Property Image */}
           <div className="w-full h-[400px] sm:h-[480px] rounded-2xl overflow-hidden shadow-sm border border-[#e8e2db] bg-[#f0ece7] transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
             <img
-              src={p.image_url}
+              src={getOptimizedImageUrl(p.image_url, { width: 900 })}
               alt={p.title}
+              loading="lazy"
               className="w-full h-full object-cover"
             />
           </div>

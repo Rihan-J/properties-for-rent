@@ -47,6 +47,7 @@ function PropertiesPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProperties(page, category);
   }, [page, category]);
 
@@ -236,4 +237,3 @@ export default function ProtectedPropertiesPage() {
     </ProtectedRoute>
   );
 }
-

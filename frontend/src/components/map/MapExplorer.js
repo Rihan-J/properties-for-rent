@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import api from '@/lib/api';
 import { getCurrentPosition } from '@/lib/geo';
 import MapSkeleton from '@/components/map/MapSkeleton';
@@ -185,6 +186,7 @@ export default function MapExplorer() {
   }
 
   const badge = getStatusBadge();
+  const mapCenter = useMemo(() => [lat, lng], [lat, lng]);
 
   return (
     <div className="h-[calc(100vh-64px)] flex flex-col lg:flex-row">
@@ -206,7 +208,7 @@ export default function MapExplorer() {
 
         {/* Map */}
         <MapView
-          center={[lat, lng]}
+          center={mapCenter}
           zoom={zoom}
           properties={properties}
           userLocation={userLocation}
@@ -248,12 +250,12 @@ export default function MapExplorer() {
               </div>
               <p className="text-lg font-semibold text-[#1a1815]">No properties found in this area</p>
               <p className="text-sm text-black mt-1.5">Try a different location or expand your search radius</p>
-              <a
+              <Link
                 href="/properties"
                 className="inline-block mt-6 px-6 py-3 bg-[#1a1815] text-white text-sm font-bold rounded-xl hover:bg-[#2e2a25] hover:shadow-md transition-all duration-300 active:scale-[0.98]"
               >
                 Browse All Properties
-              </a>
+              </Link>
             </div>
           </div>
         )}

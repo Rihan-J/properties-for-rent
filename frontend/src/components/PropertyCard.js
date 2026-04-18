@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getOptimizedImageUrl } from '@/lib/cloudinary';
 
 export default function PropertyCard({ property, showDelete, onDelete, isDeleting }) {
   return (
@@ -7,7 +8,7 @@ export default function PropertyCard({ property, showDelete, onDelete, isDeletin
         {/* Image */}
         <div className="relative w-full h-56 overflow-hidden bg-[#f0ece7]">
           <img
-            src={property.image_url}
+            src={getOptimizedImageUrl(property.image_url, { width: 500 })}
             alt={property.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
@@ -42,9 +43,11 @@ export default function PropertyCard({ property, showDelete, onDelete, isDeletin
       {/* Footer with actions */}
       <div className="px-5 pb-5">
         <div className="flex items-center justify-between pt-4 border-t border-[#f0ece7]">
-          <span className="text-[10px] font-bold text-black uppercase px-2.5 py-1 bg-[#f7f4f0] border border-[#e8e2db] rounded-full tracking-wider">
-            {property.status}
-          </span>
+          {property.status && (
+            <span className="text-[10px] font-bold text-black uppercase px-2.5 py-1 bg-[#f7f4f0] border border-[#e8e2db] rounded-full tracking-wider">
+              {property.status}
+            </span>
+          )}
           <div className="flex items-center gap-2">
             {showDelete && (
               <button

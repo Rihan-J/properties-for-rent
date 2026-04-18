@@ -6,19 +6,13 @@ const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
  * Returns the secure_url of the uploaded image.
  */
 export async function uploadImage(file) {
-  // Debug: log env vars (values are public, safe to log in dev)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Cloudinary] Cloud name:', CLOUD_NAME);
-    console.log('[Cloudinary] Upload preset:', UPLOAD_PRESET);
-  }
-
   if (!CLOUD_NAME) {
     throw new Error('Missing NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME in .env.local');
   }
+
   if (!UPLOAD_PRESET || UPLOAD_PRESET === 'your_unsigned_preset') {
     throw new Error(
-      'Invalid NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET — please set a real unsigned preset name in .env.local. ' +
-      'Go to Cloudinary Dashboard → Settings → Upload → Add Upload Preset → Set signing mode to "Unsigned".'
+      'Invalid NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET. Set a real unsigned preset in .env.local.'
     );
   }
 
@@ -33,18 +27,34 @@ export async function uploadImage(file) {
   );
 
   if (!response.ok) {
-    // Parse Cloudinary error response for a useful message
     let errorMsg = `Image upload failed (HTTP ${response.status})`;
     try {
       const errData = await response.json();
       errorMsg = errData?.error?.message || errorMsg;
-      console.error('[Cloudinary] Upload error:', errData);
     } catch {
-      // response wasn't JSON
+      // ignore non-JSON error response
     }
     throw new Error(errorMsg);
   }
 
   const data = await response.json();
   return data.secure_url;
+}
+
+/**
+ * Adds Cloudinary-style optimization query params without changing non-cloudinary URLs.
+ */
+export function getOptimizedImageUrl(url, { width = 500 } = {}) {
+  if (!url) return '';
+
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.set('f_auto', 'true');
+    parsed.searchParams.set('q_auto', 'true');
+    parsed.searchParams.set('w', String(width));
+    return parsed.toString();
+  } catch {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}f_auto,q_auto,w=${width}`;
+  }
 }

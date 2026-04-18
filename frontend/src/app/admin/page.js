@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { getOptimizedImageUrl } from '@/lib/cloudinary';
 
 function AdminPanel() {
   const [properties, setProperties] = useState([]);
@@ -27,6 +28,7 @@ function AdminPanel() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProperties(page);
   }, [page]);
 
@@ -55,14 +57,11 @@ function AdminPanel() {
     setDeleteTarget(null);
     if (!id) return;
 
-    console.log('Deleting property:', id);
     setActionLoading(id);
     try {
       await api.delete(`/admin/properties/${id}`);
-      console.log('Delete successful:', id);
       setProperties((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
-      console.error('Delete failed:', err.response?.data || err.message);
       alert(err.response?.data?.error || 'Failed to delete');
     } finally {
       setActionLoading('');
@@ -123,7 +122,7 @@ function AdminPanel() {
                     <tr key={p.id} className="hover:bg-[#faf9f7] transition-colors duration-200">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <img src={p.image_url} alt="" className="w-11 h-11 rounded-lg object-cover shrink-0 border border-[#e8e2db]" />
+                          <img src={getOptimizedImageUrl(p.image_url, { width: 160 })} alt="" loading="lazy" className="w-11 h-11 rounded-lg object-cover shrink-0 border border-[#e8e2db]" />
                           <span className="text-sm font-medium text-[#1a1815] truncate max-w-[200px]">{p.title}</span>
                         </div>
                       </td>

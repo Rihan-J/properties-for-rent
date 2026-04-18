@@ -99,6 +99,7 @@ function AddPropertyForm() {
       const area = parseFloat(areaSqft);
       const pps = parseFloat(pricePerSqft);
       if (!isNaN(area) && !isNaN(pps)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setTotalPrice((area * pps).toString());
       }
     }
@@ -107,6 +108,7 @@ function AddPropertyForm() {
   // Reset logic when category changes
   useEffect(() => {
     if (selectedCategory === 'room' || selectedCategory === 'pg') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDimensions('');
       setAreaSqft('');
       setMunicipalStatus('');

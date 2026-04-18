@@ -39,7 +39,6 @@ export default function SearchBar({ onLocationSelect, onClear, disabled = false 
       setIsOpen(data.length > 0);
       setActiveIndex(-1);
     } catch (err) {
-      console.error('Geocoding error:', err);
       setResults([]);
     } finally {
       setLoading(false);
@@ -51,7 +50,7 @@ export default function SearchBar({ onLocationSelect, onClear, disabled = false 
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       searchLocation(query);
-    }, 400);
+    }, 300);
     return () => clearTimeout(debounceRef.current);
   }, [query, searchLocation]);
 

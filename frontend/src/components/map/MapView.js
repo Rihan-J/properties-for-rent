@@ -6,8 +6,10 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet-defaulticon-compatibility';
-import { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
+import { getOptimizedImageUrl } from '@/lib/cloudinary';
+import { getLat, getLng } from '@/lib/property';
 
 /**
  * Syncs the map center/zoom when props change.
@@ -58,7 +60,7 @@ function createClusterIcon(cluster) {
  * Main map component with Airbnb-style price markers and clustering.
  * Must be loaded with next/dynamic ssr:false.
  */
-export default function MapView({
+function MapView({
   center = [12.9716, 77.5946],
   zoom = 13,
   properties = [],
@@ -72,12 +74,14 @@ export default function MapView({
 
   // Memoize markers for performance
   const markers = useMemo(() => {
-    return properties.map((property) => {
+    return properties
+    .filter((property) => getLat(property) !== null && getLng(property) !== null)
+    .map((property) => {
       const icon = createPriceIcon(property.price);
       return (
         <Marker
           key={property.id}
-          position={[property.latitude, property.longitude]}
+          position={[getLat(property), getLng(property)]}
           icon={icon}
         >
           <Popup>
@@ -88,7 +92,7 @@ export default function MapView({
               {property.image_url && (
                 <div className="apna-popup-img-wrap">
                   <img
-                    src={property.image_url}
+                    src={getOptimizedImageUrl(property.image_url, { width: 320 })}
                     alt={property.title}
                     className="apna-popup-img"
                     loading="lazy"
@@ -176,3 +180,5 @@ export default function MapView({
     </MapContainer>
   );
 }
+
+export default memo(MapView);

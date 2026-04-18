@@ -7,12 +7,13 @@ const {
   deleteProperty,
 } = require('../controllers/property.controller');
 const { protect, authorize } = require('../middleware/auth');
+const { cacheResponse, buildNearbyCacheKey } = require('../middleware/cache');
 
 const router = Router();
 
 // Public routes
-router.get('/', protect, getProperties);
-router.get('/nearby', getNearbyProperties);
+router.get('/', protect, cacheResponse(60), getProperties);
+router.get('/nearby', cacheResponse(45, { keyBuilder: buildNearbyCacheKey }), getNearbyProperties);
 router.get('/:id', getPropertyById);
 
 // Protected routes — owner or admin only

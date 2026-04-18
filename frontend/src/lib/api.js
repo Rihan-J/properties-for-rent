@@ -6,19 +6,14 @@ const api = axios.create({
   timeout: 15000,
 });
 
-// ─── In-memory token bridge ─────────────────────────────
-// AuthContext registers a getter function so Axios can read
-// the token from React state without importing the context.
 let _getToken = null;
 
 export function setTokenGetter(getter) {
   _getToken = getter;
 }
 
-// AuthContext sets this ref to its logout function for 401 handling
 export const clearAuthState = { current: null };
 
-// Attach JWT token to every request from in-memory store
 api.interceptors.request.use((config) => {
   const token = _getToken?.();
   if (token) {
@@ -27,16 +22,37 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 responses globally
+function shouldRetry(error) {
+  if (error?.code === 'ERR_CANCELED') return false;
+  const method = (error?.config?.method || '').toLowerCase();
+  if (method && method !== 'get') return false;
+
+  const status = error?.response?.status;
+  if (!status) return true;
+  return status === 429 || status >= 500;
+}
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
       clearAuthState.current?.();
       if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth')) {
         window.location.href = '/auth/login';
       }
+      return Promise.reject(error);
     }
+
+    const config = error.config || {};
+    config.__retryCount = config.__retryCount || 0;
+
+    if (shouldRetry(error) && config.__retryCount < 2) {
+      config.__retryCount += 1;
+      const delayMs = 250 * (2 ** (config.__retryCount - 1));
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      return api(config);
+    }
+
     return Promise.reject(error);
   }
 );
