@@ -12,12 +12,12 @@ services:
       - key: PORT
         value: 5000
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://neondb_owner:npg_0mc4gFYueopz@ep-fancy-shape-a458gdc4-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
       - key: JWT_SECRET
-        sync: false
+        value: apnastay-dev-secret-change-this-in-production-immediately
       - key: CLOUDINARY_CLOUD_NAME
-        sync: false
+        value: dftcnccer
       - key: CLOUDINARY_API_KEY
-        sync: false
+        value: 431878442119442
       - key: CLOUDINARY_API_SECRET
-        sync: false
+        value: U33_BftweRzj3maqdo4BO5NP-Gc
