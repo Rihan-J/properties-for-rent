@@ -24,6 +24,6 @@ services:
       - key: CLOUDINARY_API_SECRET
         value: U33_BftweRzj3maqdo4BO5NP-Gc
       - key: CORS_ORIGIN
-        value: https://apnastay.vercel.app
+        value: https://nammastay.vercel.app
 
 
