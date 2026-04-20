@@ -2,8 +2,10 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 
+import { BRAND } from '@/config/brand.config';
+
 export const metadata = {
-  title: 'Apna Stay — Find Your Perfect Stay',
+  title: `${BRAND.name} — Find Your Perfect Stay`,
   description: 'Discover and rent properties near you. Browse apartments, houses, PGs, and more on an interactive map.',
 };
 

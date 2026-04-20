@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useState, useSyncExternalStore } from 'react';
+import { BRAND } from '@/config/brand.config';
 
 export default function Navbar() {
   const { user, logout, isOwner, isAdmin } = useAuth();
@@ -24,9 +25,9 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-[#1a1815] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm" style={{ fontFamily: "'Cormorant Garamond', serif" }}>AS</span>
+              <span className="text-white font-bold text-sm" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{BRAND.initials}</span>
             </div>
-            <span className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Apna Stay</span>
+            <span className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{BRAND.name}</span>
           </Link>
 
           {/* Desktop Nav */}

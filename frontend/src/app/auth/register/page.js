@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 import { Suspense } from 'react';
+import { BRAND } from '@/config/brand.config';
 
 function RegisterContent() {
   const { register } = useAuth();
@@ -47,10 +48,10 @@ function RegisterContent() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-12 h-12 bg-[#1a1815] rounded-xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-base" style={{ fontFamily: "'Cormorant Garamond', serif" }}>AS</span>
+            <span className="text-white font-bold text-base" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{BRAND.initials}</span>
           </div>
           <h1 className="text-3xl font-semibold text-[#1a1815]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Create your account</h1>
-          <p className="text-black mt-2 text-sm">Join Apna Stay to find or list properties</p>
+          <p className="text-black mt-2 text-sm">Join {BRAND.name} to {BRAND.tagline}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-8 space-y-5">
