@@ -1,44 +1,30 @@
-const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+import api from './api';
 
 /**
- * Upload a file to Cloudinary using unsigned upload preset.
+ * Upload a file securely via our backend proxy.
  * Returns the secure_url of the uploaded image.
  */
 export async function uploadImage(file) {
-  if (!CLOUD_NAME) {
-    throw new Error('Missing NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME in .env.local');
-  }
-
-  if (!UPLOAD_PRESET || UPLOAD_PRESET === 'your_unsigned_preset') {
-    throw new Error(
-      'Invalid NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET. Set a real unsigned preset in .env.local.'
-    );
-  }
+  if (!file) throw new Error('No file provided');
 
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('upload_preset', UPLOAD_PRESET);
-  formData.append('folder', 'apna-stay');
 
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-    { method: 'POST', body: formData }
-  );
-
-  if (!response.ok) {
-    let errorMsg = `Image upload failed (HTTP ${response.status})`;
-    try {
-      const errData = await response.json();
-      errorMsg = errData?.error?.message || errorMsg;
-    } catch {
-      // ignore non-JSON error response
+  try {
+    const response = await api.post('/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
+    if (response.data && response.data.url) {
+      return response.data.url;
     }
+    throw new Error('Invalid response from upload server');
+  } catch (error) {
+    const errorMsg = error.response?.data?.error || error.message || 'Image upload failed';
     throw new Error(errorMsg);
   }
-
-  const data = await response.json();
-  return data.secure_url;
 }
 
 /**

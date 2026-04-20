@@ -63,6 +63,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/upload', require('./routes/upload.routes'));
 
 // 404 Handler
 app.use((req, res) => {
