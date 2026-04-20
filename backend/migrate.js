@@ -17,7 +17,26 @@ async function migrate() {
       ADD COLUMN IF NOT EXISTS price_per_sqft NUMERIC,
       ADD COLUMN IF NOT EXISTS total_price NUMERIC,
       ADD COLUMN IF NOT EXISTS municipal_status VARCHAR(50),
-      ADD COLUMN IF NOT EXISTS revenue_type VARCHAR(50)
+      ADD COLUMN IF NOT EXISTS revenue_type VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS booking_type VARCHAR(20),
+      ADD COLUMN IF NOT EXISTS price_per_hour NUMERIC(12, 2),
+      ADD COLUMN IF NOT EXISTS price_per_day NUMERIC(12, 2)
+    `);
+
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conname = 'properties_booking_type_check'
+        ) THEN
+          ALTER TABLE properties
+          ADD CONSTRAINT properties_booking_type_check
+          CHECK (booking_type IN ('hourly', 'daily'));
+        END IF;
+      END
+      $$;
     `);
 
     await pool.query(`

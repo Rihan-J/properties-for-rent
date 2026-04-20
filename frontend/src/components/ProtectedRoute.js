@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
 /**
@@ -11,19 +11,20 @@ import { useEffect } from 'react';
 export default function ProtectedRoute({ children, allowedRoles = [] }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (loading) return;
 
     if (!user) {
-      router.replace('/auth/login');
+      router.replace(`/auth/login?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
 
     if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
       router.replace('/');
     }
-  }, [user, loading, router, allowedRoles]);
+  }, [user, loading, router, pathname, allowedRoles]);
 
   if (loading) {
     return (

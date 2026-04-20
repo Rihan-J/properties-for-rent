@@ -1,10 +1,26 @@
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { getOptimizedImageUrl } from '@/lib/cloudinary';
+import { getPropertyPricing } from '@/lib/property';
 
 export default function PropertyCard({ property, showDelete, onDelete, isDeleting }) {
+  const router = useRouter();
+  const { user } = useAuth();
+  const pricing = getPropertyPricing(property);
+
+  const handleNavigation = (e) => {
+    e.preventDefault();
+    if (!user) {
+      router.push(`/auth/login?redirect=/properties/${property.id}`);
+    } else {
+      router.push(`/properties/${property.id}`);
+    }
+  };
+
   return (
     <div className={`group bg-white rounded-2xl overflow-hidden shadow-sm border border-[#e8e2db] hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 ease-in-out ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}>
-      <Link href={`/properties/${property.id}`} className="block">
+      <a href={`/properties/${property.id}`} onClick={handleNavigation} className="block cursor-pointer">
         {/* Image */}
         <div className="relative w-full h-56 overflow-hidden bg-[#f0ece7]">
           <img
@@ -13,11 +29,26 @@ export default function PropertyCard({ property, showDelete, onDelete, isDeletin
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
+          {/* Price badge */}
           <div className="absolute top-4 right-4 px-3.5 py-1.5 bg-white/90 border border-[#e2ddd8] rounded-full shadow-sm" style={{ backdropFilter: 'blur(8px)' }}>
-            <span className="text-[#1a1815] font-bold text-sm tracking-tight">
-              ₹{Number(property.price).toLocaleString('en-IN')}<span className="text-xs font-medium text-black ml-0.5">/mo</span>
-            </span>
+            {pricing.isFlexible ? (
+              <span className="text-[#1a1815] font-bold text-xs tracking-tight">
+                {'\u20B9'}{pricing.hourly?.toLocaleString('en-IN')}<span className="text-[10px] font-medium text-black">/hr</span>
+                <span className="mx-1 text-[#d0c8be]">•</span>
+                {'\u20B9'}{pricing.daily?.toLocaleString('en-IN')}<span className="text-[10px] font-medium text-black">/day</span>
+              </span>
+            ) : (
+              <span className="text-[#1a1815] font-bold text-sm tracking-tight">
+                {'\u20B9'}{pricing.amount.toLocaleString('en-IN')}<span className="text-xs font-medium text-black ml-0.5">{pricing.unitShort}</span>
+              </span>
+            )}
           </div>
+          {/* Flexible pricing badge */}
+          {pricing.isFlexible && (
+            <div className="absolute top-4 left-4 px-2.5 py-1 bg-emerald-500/90 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm" style={{ backdropFilter: 'blur(8px)' }}>
+              Flexible pricing
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -34,11 +65,11 @@ export default function PropertyCard({ property, showDelete, onDelete, isDeletin
 
           {property.distance_km !== undefined && (
             <p className="text-sm text-black mt-1.5 font-medium">
-              📍 {Number(property.distance_km).toFixed(1)} km away
+              Distance: {Number(property.distance_km).toFixed(1)} km
             </p>
           )}
         </div>
-      </Link>
+      </a>
 
       {/* Footer with actions */}
       <div className="px-5 pb-5">
@@ -61,12 +92,13 @@ export default function PropertyCard({ property, showDelete, onDelete, isDeletin
                 Delete
               </button>
             )}
-            <Link
+            <a
               href={`/properties/${property.id}`}
-              className="text-sm text-black font-semibold hover:text-[#8a6b4a] flex items-center gap-1 transition-colors duration-300"
+              onClick={handleNavigation}
+              className="text-sm text-black font-semibold hover:text-[#8a6b4a] flex items-center gap-1 transition-colors duration-300 cursor-pointer"
             >
-              View <span className="text-base leading-none">→</span>
-            </Link>
+              View <span className="text-base leading-none">-&gt;</span>
+            </a>
           </div>
         </div>
       </div>

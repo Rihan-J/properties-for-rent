@@ -19,6 +19,7 @@ const CATEGORY_OPTIONS = [
   { id: 'room', label: 'Room', icon: '🛏️', desc: 'Single room rental' },
   { id: 'shop', label: 'Shop', icon: '🏪', desc: 'Commercial space' },
   { id: 'pg', label: 'PG', icon: '🧑‍🎓', desc: 'Shared accommodation' },
+  { id: 'lodge', label: 'Lodge', icon: '🏨', desc: 'Hourly / Daily stay' },
   { id: 'site', label: 'Site / Plot', icon: '🌍', desc: 'Land for sale' },
 ];
 
@@ -70,9 +71,12 @@ function AddPropertyForm() {
   const router = useRouter();
   
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [bookingTypes, setBookingTypes] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState(''); // Monthly Rent
+  const [pricePerHour, setPricePerHour] = useState('');
+  const [pricePerDay, setPricePerDay] = useState('');
   const [phone, setPhone] = useState('');
   const [dimensions, setDimensions] = useState('');
   const [areaSqft, setAreaSqft] = useState('');
@@ -85,12 +89,18 @@ function AddPropertyForm() {
   const [location, setLocation] = useState({ lat: null, lng: null });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [dragOver, setDragOver] = useState(false);
 
   // derived completeness (for step indicators)
   const step1Done = !!selectedCategory;
-  const step2Done = step1Done && title.length >= 3 && (selectedCategory === 'site' ? totalPrice : price);
+  const lodgePriceFilled = selectedCategory === 'lodge' && bookingTypes.length > 0 &&
+    (bookingTypes.includes('hourly') ? !!pricePerHour : true) &&
+    (bookingTypes.includes('daily') ? !!pricePerDay : true);
+  const step2Done = step1Done && title.length >= 3 && (
+    selectedCategory === 'site' ? totalPrice : selectedCategory === 'lodge' ? lodgePriceFilled : price
+  );
   const step3Done = step2Done && !!imageFile && !!location.lat && !!location.lng;
 
   // Auto calculation for total price
@@ -124,6 +134,13 @@ function AddPropertyForm() {
       setTotalPrice(''); 
       setPricePerSqft('');
     }
+    if (selectedCategory !== 'lodge') {
+      setBookingTypes([]);
+      setPricePerHour('');
+      setPricePerDay('');
+    } else {
+      setPrice('');
+    }
   }, [selectedCategory]);
 
   function processFile(file) {
@@ -146,13 +163,19 @@ function AddPropertyForm() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    setSuccess(false);
     
     if (!selectedCategory) { setError('Please select a property category'); return; }
     if (!imageFile) { setError('Please upload an image'); return; }
     if (!location.lat || !location.lng) { setError('Please select a location on the map'); return; }
     
     if (selectedCategory === 'site' && !totalPrice) { setError('Total Price is required for plots'); return; }
-    if (selectedCategory !== 'site' && !price) { setError('Monthly Rent is required'); return; }
+    if (selectedCategory === 'lodge') {
+      if (bookingTypes.length === 0) { setError('Please select at least one booking type for lodge'); return; }
+      if (bookingTypes.includes('hourly') && !pricePerHour) { setError('Price per hour is required for hourly lodge'); return; }
+      if (bookingTypes.includes('daily') && !pricePerDay) { setError('Price per day is required for daily lodge'); return; }
+    }
+    if (selectedCategory !== 'site' && selectedCategory !== 'lodge' && !price) { setError('Monthly Rent is required'); return; }
     if (selectedCategory === 'site' && !areaSqft && !dimensions) { setError('Area or Dimensions is required for plots'); return; }
 
     setLoading(true);
@@ -161,11 +184,19 @@ function AddPropertyForm() {
       const imageUrl = await uploadImage(imageFile);
       setUploadProgress('Creating listing…');
       
+      const isLodge = selectedCategory === 'lodge';
       const payload = {
-        category: selectedCategory, // Included as requested
+        category: selectedCategory,
         title: title.trim(),
         description: description.trim() || null,
-        price: selectedCategory === 'site' ? (parseFloat(totalPrice) || 1) : parseFloat(price),
+        price: selectedCategory === 'site'
+          ? (parseFloat(totalPrice) || 1)
+          : isLodge
+            ? (bookingTypes.includes('hourly') ? parseFloat(pricePerHour) : parseFloat(pricePerDay))
+            : parseFloat(price),
+        booking_types: isLodge ? bookingTypes : undefined,
+        price_per_hour: isLodge && bookingTypes.includes('hourly') ? parseFloat(pricePerHour) : null,
+        price_per_day: isLodge && bookingTypes.includes('daily') ? parseFloat(pricePerDay) : null,
         latitude: location.lat,
         longitude: location.lng,
         image_url: imageUrl,
@@ -179,7 +210,9 @@ function AddPropertyForm() {
       
       if (!user?.phone && phone) payload.phone = phone.trim();
       await api.post('/properties', payload);
-      router.push('/properties');
+      setSuccess(true);
+      setUploadProgress('');
+      setTimeout(() => router.push('/properties'), 1500);
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Failed to create property');
     } finally {
@@ -251,7 +284,7 @@ function AddPropertyForm() {
           {/* ── card: category ── */}
           <div className="mb-8">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-4">01 — Type</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
               {CATEGORY_OPTIONS.map((cat) => (
                 <button
                   key={cat.id}
@@ -275,9 +308,48 @@ function AddPropertyForm() {
 
           {selectedCategory && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {selectedCategory === 'lodge' && (
+                <div className="bg-white rounded-2xl border border-[#e8e2db] p-6 space-y-5 shadow-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black">02 — Booking Type</p>
+                  <p className="text-xs text-black -mt-2">Select one or both pricing options</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setBookingTypes(prev => prev.includes('hourly') ? prev.filter(t => t !== 'hourly') : [...prev, 'hourly'])}
+                      className={`relative px-4 py-3 rounded-xl border text-sm font-bold transition-all duration-200 ${bookingTypes.includes('hourly') ? 'bg-[#1a1815] text-white border-[#1a1815]' : 'bg-[#faf9f7] text-[#1a1815] border-[#e2ddd8] hover:border-[#b5936b]'}`}
+                    >
+                      {bookingTypes.includes('hourly') && (
+                        <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-emerald-400 rounded-full flex items-center justify-center">
+                          <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        </span>
+                      )}
+                      ⏰ Hourly
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBookingTypes(prev => prev.includes('daily') ? prev.filter(t => t !== 'daily') : [...prev, 'daily'])}
+                      className={`relative px-4 py-3 rounded-xl border text-sm font-bold transition-all duration-200 ${bookingTypes.includes('daily') ? 'bg-[#1a1815] text-white border-[#1a1815]' : 'bg-[#faf9f7] text-[#1a1815] border-[#e2ddd8] hover:border-[#b5936b]'}`}
+                    >
+                      {bookingTypes.includes('daily') && (
+                        <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-emerald-400 rounded-full flex items-center justify-center">
+                          <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        </span>
+                      )}
+                      📅 Daily
+                    </button>
+                  </div>
+                  {bookingTypes.length === 2 && (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-xl">
+                      <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <p className="text-xs font-semibold text-emerald-700">Flexible pricing — guests can choose hourly or daily</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* ── card: basics ── */}
               <div className="bg-white rounded-2xl border border-[#e8e2db] p-6 space-y-5 shadow-sm">
-                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black">02 — Basics</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black">{selectedCategory === 'lodge' ? '03 — Basics' : '02 — Basics'}</p>
 
                 <Section label="Property Title">
                   <input
@@ -310,7 +382,7 @@ function AddPropertyForm() {
               {/* ── card: site details ── */}
               {showSiteDetails && (
                 <div className="bg-white rounded-2xl border border-[#e8e2db] p-6 space-y-5 shadow-sm">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black">03 — Site Details</p>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black">{selectedCategory === 'lodge' ? '04 — Site Details' : '03 — Site Details'}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Section label="Dimensions (e.g. 30x40)">
                       <input
@@ -330,9 +402,9 @@ function AddPropertyForm() {
 
               {/* ── card: pricing ── */}
               <div className="bg-white rounded-2xl border border-[#e8e2db] p-6 space-y-5 shadow-sm">
-                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black">04 — Pricing</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black">{selectedCategory === 'lodge' ? '05 — Pricing' : '04 — Pricing'}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {selectedCategory !== 'site' && (
+                  {selectedCategory !== 'site' && selectedCategory !== 'lodge' && (
                     <Section label="Monthly Rent (₹)">
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#b8b0a6] text-sm font-bold">₹</span>
@@ -341,6 +413,32 @@ function AddPropertyForm() {
                           value={price} onChange={(e) => setPrice(e.target.value)}
                           className={`${inputCls} pl-8`}
                           placeholder="15,000"
+                        />
+                      </div>
+                    </Section>
+                  )}
+                  {selectedCategory === 'lodge' && bookingTypes.includes('hourly') && (
+                    <Section label="Price per hour (₹)">
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#b8b0a6] text-sm font-bold">₹</span>
+                        <input
+                          type="number" required min={1} step="0.01"
+                          value={pricePerHour} onChange={(e) => setPricePerHour(e.target.value)}
+                          className={`${inputCls} pl-8`}
+                          placeholder="200"
+                        />
+                      </div>
+                    </Section>
+                  )}
+                  {selectedCategory === 'lodge' && bookingTypes.includes('daily') && (
+                    <Section label="Price per day (₹)">
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#b8b0a6] text-sm font-bold">₹</span>
+                        <input
+                          type="number" required min={1} step="0.01"
+                          value={pricePerDay} onChange={(e) => setPricePerDay(e.target.value)}
+                          className={`${inputCls} pl-8`}
+                          placeholder="1500"
                         />
                       </div>
                     </Section>
@@ -444,30 +542,22 @@ function AddPropertyForm() {
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-black">Click anywhere on the map to drop a pin, or enter coordinates manually</p>
-                <div className="rounded-xl overflow-hidden border border-[#e8e2db]" style={{ height: 280 }}>
-                  <MapPicker value={location} onChange={setLocation} />
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-                  <Section label="Latitude">
-                    <input
-                      type="number" step="any"
-                      value={location.lat || ''}
-                      onChange={(e) => setLocation(prev => ({ ...prev, lat: parseFloat(e.target.value) || null }))}
-                      className={inputCls} placeholder="e.g. 12.9716"
-                    />
-                  </Section>
-                  <Section label="Longitude">
-                    <input
-                      type="number" step="any"
-                      value={location.lng || ''}
-                      onChange={(e) => setLocation(prev => ({ ...prev, lng: parseFloat(e.target.value) || null }))}
-                      className={inputCls} placeholder="e.g. 77.5946"
-                    />
-                  </Section>
-                </div>
+                <p className="text-xs text-black">Click anywhere on the map to drop a pin, search, or enter coordinates</p>
+                <MapPicker value={location} onChange={setLocation} />
               </div>
+
+              {/* ── success ── */}
+              {success && (
+                <div className="flex items-center gap-3 px-5 py-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="font-bold">Property submitted successfully!</p>
+                    <p className="text-xs text-emerald-600 mt-0.5">Redirecting to properties…</p>
+                  </div>
+                </div>
+              )}
 
               {/* ── submit ── */}
               <button

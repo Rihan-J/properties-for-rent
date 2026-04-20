@@ -3,7 +3,12 @@ const {
   getAllProperties,
   approveProperty,
   deleteProperty,
+  getOwnerDetails,
 } = require('../controllers/admin.controller');
+const {
+  getAllReviews,
+  deleteReview,
+} = require('../controllers/review.controller');
 const { protect, authorize } = require('../middleware/auth');
 
 const router = Router();
@@ -15,5 +20,12 @@ router.use(authorize('admin'));
 router.get('/properties', getAllProperties);
 router.patch('/properties/:id/approve', approveProperty);
 router.delete('/properties/:id', deleteProperty);
+
+// Owner details
+router.get('/users/:id', getOwnerDetails);
+
+// Reviews management
+router.get('/reviews', getAllReviews);
+router.delete('/reviews/:id', deleteReview);
 
 module.exports = router;

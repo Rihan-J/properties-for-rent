@@ -7,10 +7,10 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validateRegister(body) {
   const errors = [];
-  const { name, email, password, role } = body;
+  const { name, email, password, role, phone } = body;
 
   if (!name || typeof name !== 'string' || name.trim().length < 2) {
-    errors.push('Name must be at least 2 characters');
+    errors.push('Name is required and must be at least 2 characters');
   }
   if (name && name.trim().length > 100) {
     errors.push('Name must be under 100 characters');
@@ -18,8 +18,10 @@ function validateRegister(body) {
   if (!email || !EMAIL_REGEX.test(email)) {
     errors.push('Valid email is required');
   }
-  if (!password || password.length < 6) {
-    errors.push('Password must be at least 6 characters');
+  
+  const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+  if (!password || !strongPasswordRegex.test(password)) {
+    errors.push('Password must be at least 8 characters and include uppercase, lowercase, number, and special character');
   }
   if (password && password.length > 128) {
     errors.push('Password must be under 128 characters');
@@ -27,8 +29,8 @@ function validateRegister(body) {
   if (role && !['user', 'owner'].includes(role)) {
     errors.push('Role must be either "user" or "owner"');
   }
-  if (body.phone && !/^\+?[0-9]{10,15}$/.test(body.phone)) {
-    errors.push('Phone must be a valid 10-15 digit number');
+  if (!phone || !/^\+?[0-9]{10,15}$/.test(phone)) {
+    errors.push('Phone is required and must be a valid 10-15 digit number');
   }
 
   return { valid: errors.length === 0, errors };
@@ -50,7 +52,19 @@ function validateLogin(body) {
 
 function validateProperty(body) {
   const errors = [];
-  const { title, price, latitude, longitude, image_url } = body;
+  const {
+    title,
+    price,
+    latitude,
+    longitude,
+    image_url,
+    category,
+    booking_type,
+    booking_types,
+    price_per_hour,
+    price_per_day,
+  } = body;
+  const isLodge = category === 'lodge';
 
   if (!title || typeof title !== 'string' || title.trim().length < 3) {
     errors.push('Title must be at least 3 characters');
@@ -61,11 +75,43 @@ function validateProperty(body) {
   if (body.description && typeof body.description === 'string' && body.description.trim().length > 2000) {
     errors.push('Description must be under 2000 characters');
   }
-  if (price === undefined || price === null || isNaN(Number(price)) || Number(price) <= 0) {
-    errors.push('Price must be a positive number');
-  }
-  if (Number(price) > 9999999999) {
-    errors.push('Price exceeds maximum allowed value');
+  if (!isLodge) {
+    if (price === undefined || price === null || isNaN(Number(price)) || Number(price) <= 0) {
+      errors.push('Price must be a positive number');
+    }
+    if (Number(price) > 9999999999) {
+      errors.push('Price exceeds maximum allowed value');
+    }
+  } else {
+    // Normalize: accept booking_types array OR legacy booking_type string
+    const types = Array.isArray(booking_types) ? booking_types : (booking_type ? [booking_type] : []);
+    const validTypes = types.filter(t => ['hourly', 'daily'].includes(t));
+
+    if (validTypes.length === 0) {
+      errors.push('At least one booking type (hourly / daily) is required for lodge');
+    }
+
+    if (validTypes.includes('hourly')) {
+      if (
+        price_per_hour === undefined ||
+        price_per_hour === null ||
+        isNaN(Number(price_per_hour)) ||
+        Number(price_per_hour) <= 0
+      ) {
+        errors.push('Price per hour must be a positive number for hourly lodge');
+      }
+    }
+
+    if (validTypes.includes('daily')) {
+      if (
+        price_per_day === undefined ||
+        price_per_day === null ||
+        isNaN(Number(price_per_day)) ||
+        Number(price_per_day) <= 0
+      ) {
+        errors.push('Price per day must be a positive number for daily lodge');
+      }
+    }
   }
   if (latitude === undefined || isNaN(Number(latitude)) || Number(latitude) < -90 || Number(latitude) > 90) {
     errors.push('Latitude must be between -90 and 90');

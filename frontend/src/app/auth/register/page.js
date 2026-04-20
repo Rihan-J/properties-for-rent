@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function RegisterPage() {
   const { register } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,9 +22,17 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
 
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+    if (!strongPasswordRegex.test(password)) {
+      setError("Password must be at least 8 characters and include uppercase, lowercase, number, and special character.");
+      setLoading(false);
+      return;
+    }
+
     try {
       await register(name, email, password, role, phone);
-      router.push('/');
+      const redirectUrl = searchParams.get('redirect') || '/';
+      router.push(redirectUrl);
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed. Please try again.');
     } finally {
@@ -81,19 +90,23 @@ export default function RegisterPage() {
               id="password"
               type="password"
               required
-              minLength={6}
+              minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 bg-[#faf9f7] border border-[#e2ddd8] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#b5936b]/40 focus:border-[#b5936b] transition-all duration-200 text-[#1a1815] text-sm placeholder:text-[#b8b0a6]"
-              placeholder="Min 6 characters"
+              placeholder="Strong password"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Must include uppercase, lowercase, number, and special character.
+            </p>
           </div>
 
           <div>
-            <label htmlFor="phone" className="block text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-2">Phone Number <span className="text-[#b8b0a6] font-normal normal-case tracking-normal">(optional)</span></label>
+            <label htmlFor="phone" className="block text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-2">Phone Number</label>
             <input
               id="phone"
               type="tel"
+              required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="w-full px-4 py-3 bg-[#faf9f7] border border-[#e2ddd8] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#b5936b]/40 focus:border-[#b5936b] transition-all duration-200 text-[#1a1815] text-sm placeholder:text-[#b8b0a6]"
@@ -141,7 +154,10 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-black mt-6">
             Already have an account?{' '}
-            <Link href="/auth/login" className="text-black font-bold hover:text-[#8a6b4a] transition-colors">
+            <Link 
+              href={`/auth/login${searchParams.get('redirect') ? `?redirect=${encodeURIComponent(searchParams.get('redirect'))}` : ''}`} 
+              className="text-black font-bold hover:text-[#8a6b4a] transition-colors"
+            >
               Sign in
             </Link>
           </p>

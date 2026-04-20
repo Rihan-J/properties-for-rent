@@ -35,6 +35,9 @@ CREATE TABLE IF NOT EXISTS properties (
   status VARCHAR(20) NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'approved', 'rejected')),
   category VARCHAR(30),
+  booking_type VARCHAR(20) CHECK (booking_type IN ('hourly', 'daily', 'both')),
+  price_per_hour NUMERIC(12, 2),
+  price_per_day NUMERIC(12, 2),
   dimensions VARCHAR(50),
   area_sqft NUMERIC,
   price_per_sqft NUMERIC,
@@ -50,6 +53,22 @@ CREATE INDEX IF NOT EXISTS idx_properties_status ON properties (status);
 CREATE INDEX IF NOT EXISTS idx_properties_category ON properties (category);
 CREATE INDEX IF NOT EXISTS idx_properties_created_at_desc ON properties (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_properties_owner ON properties (owner_id);
+
+-- =============================================
+-- Reviews Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS reviews (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  property_id UUID NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, property_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_reviews_property ON reviews (property_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_user ON reviews (user_id);
 
 -- =============================================
 -- Query Plan Verification (run in Neon SQL editor)

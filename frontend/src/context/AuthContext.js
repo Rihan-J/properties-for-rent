@@ -7,29 +7,24 @@ import { setTokenGetter, clearAuthState } from '@/lib/api';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [initialAuth] = useState(() => {
-    if (typeof window === 'undefined') {
-      return { user: null, token: null };
-    }
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
     const storedToken = localStorage.getItem('apnastay_token');
     const storedUser = localStorage.getItem('apnastay_user');
-    if (!storedToken || !storedUser) {
-      return { user: null, token: null };
+    if (storedToken && storedUser) {
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('apnastay_token');
+        localStorage.removeItem('apnastay_user');
+      }
     }
-
-    try {
-      return { token: storedToken, user: JSON.parse(storedUser) };
-    } catch {
-      localStorage.removeItem('apnastay_token');
-      localStorage.removeItem('apnastay_user');
-      return { user: null, token: null };
-    }
-  });
-
-  const [user, setUser] = useState(initialAuth.user);
-  const [token, setToken] = useState(initialAuth.token);
-  const [loading] = useState(false);
+    setLoading(false);
+  }, []);
 
   // Register the token getter so Axios can read from state
   useEffect(() => {

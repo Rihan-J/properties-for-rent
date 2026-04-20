@@ -28,6 +28,7 @@ export default function MapExplorer() {
   const [lng, setLng] = useState(DEFAULT_CENTER.lng);
   const [radius, setRadius] = useState(10);
   const [category, setCategory] = useState('all');
+  const [bookingTypeFilter, setBookingTypeFilter] = useState('all');
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +40,7 @@ export default function MapExplorer() {
   const abortRef = useRef(null);
 
   // ─── Fetch nearby properties ──────────────────────────
-  const fetchNearbyProperties = useCallback(async (newLat, newLng, newRadius, newCategory) => {
+  const fetchNearbyProperties = useCallback(async (newLat, newLng, newRadius, newCategory, newBookingType = 'all') => {
     // Abort previous request
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
@@ -52,6 +53,9 @@ export default function MapExplorer() {
       const params = { lat: newLat, lng: newLng, radius: newRadius, limit: 50 };
       if (newCategory && newCategory !== 'all') {
         params.category = newCategory;
+      }
+      if (newCategory === 'lodge' && newBookingType !== 'all') {
+        params.booking_type = newBookingType;
       }
       const res = await api.get('/properties/nearby', {
         params,
@@ -84,7 +88,7 @@ export default function MapExplorer() {
         setGeoStatus('granted');
         setUserLocation([pos.lat, pos.lng]);
         setLocationName('Your location');
-        await fetchNearbyProperties(pos.lat, pos.lng, radius, category);
+        await fetchNearbyProperties(pos.lat, pos.lng, radius, category, bookingTypeFilter);
       } else {
         // Fallback to Bangalore
         setLat(DEFAULT_CENTER.lat);
@@ -92,7 +96,7 @@ export default function MapExplorer() {
         setZoom(FALLBACK_ZOOM);
         setGeoStatus('denied');
         setLocationName('Bangalore (default)');
-        await fetchNearbyProperties(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radius, category);
+        await fetchNearbyProperties(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radius, category, bookingTypeFilter);
       }
 
       setLoading(false);
@@ -109,8 +113,8 @@ export default function MapExplorer() {
     setZoom(13);
     setGeoStatus('searched');
     setLocationName(name || 'Selected location');
-    await fetchNearbyProperties(newLat, newLng, radius, category);
-  }, [radius, category, fetchNearbyProperties]);
+    await fetchNearbyProperties(newLat, newLng, radius, category, bookingTypeFilter);
+  }, [radius, category, bookingTypeFilter, fetchNearbyProperties]);
 
   // ─── Handle radius change ────────────────────────────
   const handleRadiusChange = useCallback(async (newRadius) => {
@@ -120,14 +124,20 @@ export default function MapExplorer() {
     const zoomMap = { 2: 15, 5: 14, 10: 13, 20: 12 };
     setZoom(zoomMap[newRadius] || 13);
 
-    await fetchNearbyProperties(lat, lng, newRadius, category);
-  }, [lat, lng, category, fetchNearbyProperties]);
+    await fetchNearbyProperties(lat, lng, newRadius, category, bookingTypeFilter);
+  }, [lat, lng, category, bookingTypeFilter, fetchNearbyProperties]);
 
   // ─── Handle category change ────────────────────────────
   const handleCategoryChange = useCallback(async (newCategory) => {
     setCategory(newCategory);
-    await fetchNearbyProperties(lat, lng, radius, newCategory);
+    setBookingTypeFilter('all');
+    await fetchNearbyProperties(lat, lng, radius, newCategory, 'all');
   }, [lat, lng, radius, fetchNearbyProperties]);
+
+  const handleBookingTypeChange = useCallback(async (newBookingType) => {
+    setBookingTypeFilter(newBookingType);
+    await fetchNearbyProperties(lat, lng, radius, category, newBookingType);
+  }, [lat, lng, radius, category, fetchNearbyProperties]);
 
   // ─── Recenter on user location ────────────────────────
   const handleRecenter = useCallback(async () => {
@@ -139,9 +149,9 @@ export default function MapExplorer() {
       setGeoStatus('granted');
       setUserLocation([pos.lat, pos.lng]);
       setLocationName('Your location');
-      await fetchNearbyProperties(pos.lat, pos.lng, radius, category);
+      await fetchNearbyProperties(pos.lat, pos.lng, radius, category, bookingTypeFilter);
     }
-  }, [radius, category, fetchNearbyProperties]);
+  }, [radius, category, bookingTypeFilter, fetchNearbyProperties]);
 
   // ─── Status badge info ────────────────────────────────
   function getStatusBadge() {
@@ -189,11 +199,11 @@ export default function MapExplorer() {
   const mapCenter = useMemo(() => [lat, lng], [lat, lng]);
 
   return (
-    <div className="h-[calc(100vh-64px)] flex flex-col lg:flex-row">
+    <div className="flex flex-col lg:flex-row w-full lg:h-[calc(100vh-64px)]">
       {/* ─── Map Section ────────────────────────────────── */}
-      <div className="flex-1 relative">
+      <div className="w-full h-[60vh] lg:h-full lg:flex-1 relative z-0">
         {/* Controls overlay */}
-        <div className="apna-map-controls">
+        <div className="apna-map-controls z-[1000]">
           <SearchBar
             onLocationSelect={handleLocationSelect}
             onClear={handleRecenter}
@@ -216,7 +226,7 @@ export default function MapExplorer() {
 
         {/* Status badge */}
         {badge && (
-          <div className={`apna-status-badge ${badge.className}`}>
+          <div className={`apna-status-badge z-[1000] ${badge.className}`}>
             {(loading || fetchingProperties) ? (
               <div className="apna-spinner-sm" />
             ) : (
@@ -230,7 +240,7 @@ export default function MapExplorer() {
         {!loading && geoStatus !== 'granted' && (
           <button
             onClick={handleRecenter}
-            className="apna-recenter-btn"
+            className="apna-recenter-btn z-[1000]"
             title="Go to my location"
             type="button"
           >
@@ -262,15 +272,15 @@ export default function MapExplorer() {
 
         {/* Error toast */}
         {error && (
-          <div className="apna-error-toast">
+          <div className="apna-error-toast z-[1000]">
             {error}
           </div>
         )}
       </div>
 
       {/* ─── Sidebar ────────────────────────────────────── */}
-      <div className="lg:w-[420px] h-[40vh] lg:h-full overflow-y-auto bg-white shadow-sm lg:shadow-[-8px_0_20px_rgba(0,0,0,0.03)] border-t lg:border-t-0 lg:border-l border-[#e8e2db] z-[450]">
-        <div className="p-6">
+      <div className="w-full lg:w-[420px] lg:h-full lg:overflow-y-auto z-10 lg:z-[450] bg-white lg:shadow-[-8px_0_20px_rgba(0,0,0,0.03)] border-t lg:border-t-0 lg:border-l border-[#e8e2db]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 lg:p-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2
@@ -298,6 +308,7 @@ export default function MapExplorer() {
               { id: 'room', label: 'Room' },
               { id: 'shop', label: 'Shop' },
               { id: 'pg', label: 'PG' },
+              { id: 'lodge', label: 'Lodge' },
               { id: 'site', label: 'Site / Plot' },
             ].map(cat => (
               <button
@@ -313,6 +324,27 @@ export default function MapExplorer() {
               </button>
             ))}
           </div>
+          {category === 'lodge' && (
+            <div className="mb-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {[
+                { id: 'all', label: 'All' },
+                { id: 'hourly', label: 'Hourly' },
+                { id: 'daily', label: 'Daily' },
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => handleBookingTypeChange(opt.id)}
+                  className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 border ${
+                    bookingTypeFilter === opt.id
+                      ? 'bg-[#1a1815] text-white border-[#1a1815]'
+                      : 'bg-[#f7f4f0] text-black border-[#e8e2db] hover:border-[#b5936b] hover:bg-white'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {loading ? (
             <SidebarSkeleton count={3} />
@@ -325,7 +357,7 @@ export default function MapExplorer() {
               actionHref="/properties"
             />
           ) : (
-            <div className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6 lg:gap-5">
               {properties.map((p) => (
                 <PropertyCard key={p.id} property={p} />
               ))}

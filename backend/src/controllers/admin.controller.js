@@ -98,4 +98,47 @@ async function deleteProperty(req, res, next) {
   }
 }
 
-module.exports = { getAllProperties, approveProperty, deleteProperty };
+// ─── Get Owner Details (user + their properties) ────────
+
+async function getOwnerDetails(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    // Fetch user info
+    const userResult = await pool.query(
+      'SELECT id, name, email, phone, role, created_at FROM users WHERE id = $1',
+      [id]
+    );
+    if (userResult.rows.length === 0) {
+      return fail(res, 'User not found', 404);
+    }
+
+    const user = userResult.rows[0];
+
+    // Fetch their properties
+    const propsResult = await pool.query(
+      `SELECT id, title, price, image_url, status, category, created_at
+       FROM properties
+       WHERE owner_id = $1
+       ORDER BY created_at DESC`,
+      [id]
+    );
+
+    // Compute stats
+    const properties = propsResult.rows;
+    const totalProperties = properties.length;
+    const approvedCount = properties.filter(p => p.status === 'approved').length;
+    const pendingCount = properties.filter(p => p.status === 'pending').length;
+    const rejectedCount = properties.filter(p => p.status === 'rejected').length;
+
+    return success(res, {
+      user,
+      properties,
+      stats: { totalProperties, approvedCount, pendingCount, rejectedCount },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { getAllProperties, approveProperty, deleteProperty, getOwnerDetails };

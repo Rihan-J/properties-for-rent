@@ -18,6 +18,10 @@ async function createProperty(req, res, next) {
       title,
       description,
       price,
+      booking_type,
+      booking_types,
+      price_per_hour,
+      price_per_day,
       latitude,
       longitude,
       image_url,
@@ -31,6 +35,31 @@ async function createProperty(req, res, next) {
     } = req.body;
 
     const owner_id = req.user.id;
+    const isLodge = category === 'lodge';
+
+    if (isLodge) {
+      // Normalize: accept booking_types array OR legacy booking_type string
+      const types = Array.isArray(booking_types) ? booking_types : (booking_type ? [booking_type] : []);
+      const hasHourly = types.includes('hourly');
+      const hasDaily = types.includes('daily');
+
+      if (hasHourly && hasDaily) {
+        booking_type = 'both';
+        price = Math.min(Number(price_per_hour), Number(price_per_day));
+      } else if (hasHourly) {
+        booking_type = 'hourly';
+        price = Number(price_per_hour);
+        price_per_day = null;
+      } else if (hasDaily) {
+        booking_type = 'daily';
+        price = Number(price_per_day);
+        price_per_hour = null;
+      }
+    } else {
+      booking_type = null;
+      price_per_hour = null;
+      price_per_day = null;
+    }
 
     if (area_sqft && price_per_sqft) {
       total_price = Number(area_sqft) * Number(price_per_sqft);
@@ -51,12 +80,12 @@ async function createProperty(req, res, next) {
       `INSERT INTO properties (
          owner_id, title, description, price, latitude, longitude, image_url,
          dimensions, area_sqft, price_per_sqft, total_price,
-         municipal_status, revenue_type, category
+         municipal_status, revenue_type, category, booking_type, price_per_hour, price_per_day
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
        RETURNING id, owner_id, title, description, price, latitude, longitude, image_url,
                  status, created_at, dimensions, area_sqft, price_per_sqft, total_price,
-                 municipal_status, revenue_type, category`,
+                 municipal_status, revenue_type, category, booking_type, price_per_hour, price_per_day`,
       [
         owner_id,
         title.trim(),
@@ -72,6 +101,9 @@ async function createProperty(req, res, next) {
         municipal_status || null,
         revenue_type || null,
         category || null,
+        booking_type || null,
+        price_per_hour || null,
+        price_per_day || null,
       ]
     );
 
@@ -87,8 +119,11 @@ async function getProperties(req, res, next) {
     const user = req.user;
     const { page, limit, offset } = validatePagination(req.query);
     const category = req.query.category || null;
+    const bookingType = req.query.booking_type || null;
 
-    const VALID_CATEGORIES = ['home', 'room', 'shop', 'pg', 'site'];
+    const VALID_CATEGORIES = ['home', 'room', 'shop', 'pg', 'site', 'lodge'];
+    const VALID_BOOKING_TYPES = ['hourly', 'daily'];
+    const normalizedBookingType = VALID_BOOKING_TYPES.includes(bookingType) ? bookingType : null;
 
     const conditions = [];
     const countConditions = [];
@@ -119,6 +154,15 @@ async function getProperties(req, res, next) {
       }
     }
 
+    if (normalizedBookingType) {
+      conditions.push(`p.category = 'lodge' AND (p.booking_type = $${paramIndex} OR p.booking_type = 'both')`);
+      params.push(normalizedBookingType);
+      paramIndex++;
+      countConditions.push(`p.category = 'lodge' AND (p.booking_type = $${countParamIndex} OR p.booking_type = 'both')`);
+      countParams.push(normalizedBookingType);
+      countParamIndex++;
+    }
+
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const countWhereClause = countConditions.length > 0 ? `WHERE ${countConditions.join(' AND ')}` : '';
 
@@ -143,7 +187,10 @@ async function getProperties(req, res, next) {
          p.image_url,
          p.status,
          p.created_at,
-         p.category
+         p.category,
+         p.booking_type,
+         p.price_per_hour,
+         p.price_per_day
        FROM properties p
        JOIN users u ON u.id = p.owner_id
        ${whereClause}
@@ -172,6 +219,9 @@ async function getNearbyProperties(req, res, next) {
     const lng = parseFloat(req.query.lng);
     const radiusKm = parseFloat(req.query.radius) || 5;
     const category = req.query.category || null;
+    const bookingType = req.query.booking_type || null;
+    const VALID_BOOKING_TYPES = ['hourly', 'daily'];
+    const normalizedBookingType = VALID_BOOKING_TYPES.includes(bookingType) ? bookingType : null;
     const { page, limit, offset } = validatePagination(req.query);
 
     const latDelta = radiusKm / 111.045;
@@ -192,6 +242,9 @@ async function getNearbyProperties(req, res, next) {
           p.longitude AS lng,
           p.image_url,
           p.category,
+          p.booking_type,
+          p.price_per_hour,
+          p.price_per_day,
           (
             6371 * acos(
               LEAST(1.0, GREATEST(-1.0,
@@ -212,13 +265,17 @@ async function getNearbyProperties(req, res, next) {
             OR ($10::text = 'site' AND p.category = 'site' AND u.role = 'admin')
             OR ($10::text != 'site' AND p.category = $10)
           )
+          AND (
+            $11::text IS NULL
+            OR (p.category = 'lodge' AND (p.booking_type = $11 OR p.booking_type = 'both'))
+          )
       )
-      SELECT id, title, price, lat, lng, image_url, category, distance_km
+      SELECT id, title, price, lat, lng, image_url, category, booking_type, price_per_hour, price_per_day, distance_km
       FROM nearby
       WHERE distance_km <= $7
       ORDER BY distance_km ASC
       LIMIT $8 OFFSET $9`,
-      [lat, lng, minLat, maxLat, minLng, maxLng, radiusKm, limit, offset, category]
+      [lat, lng, minLat, maxLat, minLng, maxLng, radiusKm, limit, offset, category, normalizedBookingType]
     );
 
     const countResult = await pool.query(
@@ -244,9 +301,13 @@ async function getNearbyProperties(req, res, next) {
             OR ($8::text = 'site' AND p.category = 'site' AND u.role = 'admin')
             OR ($8::text != 'site' AND p.category = $8)
           )
+          AND (
+            $9::text IS NULL
+            OR (p.category = 'lodge' AND (p.booking_type = $9 OR p.booking_type = 'both'))
+          )
       )
       SELECT COUNT(*) FROM nearby WHERE distance_km <= $7`,
-      [lat, lng, minLat, maxLat, minLng, maxLng, radiusKm, category]
+      [lat, lng, minLat, maxLat, minLng, maxLng, radiusKm, category, normalizedBookingType]
     );
 
     const total = parseInt(countResult.rows[0].count, 10);
@@ -287,6 +348,9 @@ async function getPropertyById(req, res, next) {
          p.municipal_status,
          p.revenue_type,
          p.category,
+         p.booking_type,
+         p.price_per_hour,
+         p.price_per_day,
          u.name AS owner_name,
          u.email AS owner_email,
          u.phone AS owner_phone

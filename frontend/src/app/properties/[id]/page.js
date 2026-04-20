@@ -6,8 +6,11 @@ import dynamic from 'next/dynamic';
 import api from '@/lib/api';
 import { getGoogleMapsUrl } from '@/lib/geo';
 import { getOptimizedImageUrl } from '@/lib/cloudinary';
+import { getPropertyPricing } from '@/lib/property';
 import MapSkeleton from '@/components/map/MapSkeleton';
 import PropertyDetailSkeleton from '@/components/skeletons/PropertyDetailSkeleton';
+import ReviewsSection from '@/components/ReviewsSection';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const MapView = dynamic(() => import('@/components/map/MapView'), {
   ssr: false,
@@ -15,7 +18,7 @@ const MapView = dynamic(() => import('@/components/map/MapView'), {
 });
 
 // ─── Contact Reveal Component ───────────────────────────
-function ContactReveal({ property }) {
+function ContactReveal({ property, pricing }) {
   const [revealed, setRevealed] = useState(false);
   const [locked, setLocked] = useState(false);
 
@@ -29,7 +32,7 @@ function ContactReveal({ property }) {
 
   const p = property;
   const whatsappMsg = encodeURIComponent(
-    `Hi, I'm interested in: ${p.title} — ₹${Number(p.price).toLocaleString('en-IN')}/mo`
+    `Hi, I'm interested in: ${p.title} — ₹${pricing.amount.toLocaleString('en-IN')} ${pricing.unitLong}`
   );
 
   if (!revealed) {
@@ -93,6 +96,14 @@ function ContactReveal({ property }) {
 
 // ─── Main Page ──────────────────────────────────────────
 export default function PropertyDetailPage() {
+  return (
+    <ProtectedRoute>
+      <PropertyDetailPanel />
+    </ProtectedRoute>
+  );
+}
+
+function PropertyDetailPanel() {
   const { id } = useParams();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -127,6 +138,7 @@ export default function PropertyDetailPage() {
   }
 
   const p = property;
+  const pricing = getPropertyPricing(p);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 lg:py-14">
@@ -183,13 +195,37 @@ export default function PropertyDetailPage() {
                 {p.owner_name && (
                   <p className="text-black text-sm font-medium mt-2">Listed by {p.owner_name}</p>
                 )}
+                {pricing.isFlexible && (
+                  <span className="inline-flex items-center gap-1.5 mt-2 text-[10px] font-bold text-emerald-700 uppercase px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-full tracking-wider">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Flexible Pricing
+                  </span>
+                )}
+                {!pricing.isFlexible && p.category === 'lodge' && p.booking_type && (
+                  <span className="inline-block mt-2 text-[10px] font-bold text-[#8a6b4a] uppercase px-2 py-0.5 bg-[#fdf8f4] border border-[#f0ece7] rounded-md tracking-wider">
+                    {p.booking_type}
+                  </span>
+                )}
               </div>
-              <div className="px-5 py-3 bg-[#f7f4f0] rounded-xl border border-[#e2ddd8] shrink-0 flex flex-col items-center justify-center">
-                <p className="text-[#1a1815] font-bold text-2xl tracking-tight">
-                  ₹{Number(p.price).toLocaleString('en-IN')}
-                </p>
-                <p className="text-black text-[10px] font-bold uppercase tracking-wider mt-0.5">per month</p>
-              </div>
+              {pricing.isFlexible ? (
+                <div className="shrink-0 flex flex-col gap-2">
+                  {pricing.pricingLines.map((line, i) => (
+                    <div key={i} className="px-5 py-3 bg-[#f7f4f0] rounded-xl border border-[#e2ddd8] flex flex-col items-center justify-center">
+                      <p className="text-[#1a1815] font-bold text-xl tracking-tight">
+                        ₹{line.amount.toLocaleString('en-IN')}
+                      </p>
+                      <p className="text-black text-[10px] font-bold uppercase tracking-wider mt-0.5">{line.unit}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-5 py-3 bg-[#f7f4f0] rounded-xl border border-[#e2ddd8] shrink-0 flex flex-col items-center justify-center">
+                  <p className="text-[#1a1815] font-bold text-2xl tracking-tight">
+                    ₹{pricing.amount.toLocaleString('en-IN')}
+                  </p>
+                  <p className="text-black text-[10px] font-bold uppercase tracking-wider mt-0.5">{pricing.unitLong}</p>
+                </div>
+              )}
             </div>
 
             {(p.dimensions || p.area_sqft || p.price_per_sqft || p.total_price || p.municipal_status || p.revenue_type) && (
@@ -248,8 +284,11 @@ export default function PropertyDetailPage() {
           {/* Contact Owner */}
           <div className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-6 sm:p-8 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-5">Contact Owner</p>
-            <ContactReveal property={p} />
+            <ContactReveal property={p} pricing={pricing} />
           </div>
+
+          {/* Reviews */}
+          <ReviewsSection propertyId={p.id} />
 
         </div>
 

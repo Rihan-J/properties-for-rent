@@ -26,17 +26,4 @@ services:
       - key: CORS_ORIGIN
         value: https://apnastay.vercel.app
 
-  - type: web
-    name: apna-stay-frontend
-    env: node
-    rootDir: frontend
-    plan: free
-    branch: main
-    autoDeploy: true
-    buildCommand: npm install && npm run build
-    startCommand: npm run start
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: NEXT_PUBLIC_API_URL
-        value: https://apna-stay-backend.onrender.com/api
+

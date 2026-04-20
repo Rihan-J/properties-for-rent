@@ -14,6 +14,7 @@ const CATEGORIES = [
   { id: 'room', label: 'Room', icon: '🛏️' },
   { id: 'shop', label: 'Shop', icon: '🏪' },
   { id: 'pg',   label: 'PG',   icon: '🧑‍🎓' },
+  { id: 'lodge', label: 'Lodge', icon: '🏨' },
   { id: 'site', label: 'Site', icon: '🌍' },
 ];
 
@@ -24,17 +25,19 @@ function PropertiesPage() {
   const [meta, setMeta] = useState(null);
   const [error, setError] = useState('');
   const [category, setCategory] = useState('all');
+  const [bookingTypeFilter, setBookingTypeFilter] = useState('all');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState('');
-  const { user, isOwner, isAdmin } = useAuth();
+  const { user } = useAuth();
 
-  async function fetchProperties(pageNum, cat) {
+  async function fetchProperties(pageNum, cat, bookingType) {
     setLoading(true);
     setError('');
 
     try {
       const params = { page: pageNum, limit: 20 };
       if (cat && cat !== 'all') params.category = cat;
+      if (cat === 'lodge' && bookingType && bookingType !== 'all') params.booking_type = bookingType;
 
       const res = await api.get('/properties', { params });
       setProperties(res.data.data.properties);
@@ -48,13 +51,14 @@ function PropertiesPage() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchProperties(page, category);
-  }, [page, category]);
+    fetchProperties(page, category, bookingTypeFilter);
+  }, [page, category, bookingTypeFilter]);
 
   // Reset to page 1 when category changes
   function handleCategoryChange(cat) {
     if (cat === category) return;
     setCategory(cat);
+    setBookingTypeFilter('all');
     setPage(1);
   }
 
@@ -124,6 +128,28 @@ function PropertiesPage() {
           ))}
         </div>
 
+        {category === 'lodge' && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {[
+              { id: 'all', label: 'All' },
+              { id: 'hourly', label: 'Hourly' },
+              { id: 'daily', label: 'Daily' },
+            ].map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => setBookingTypeFilter(opt.id)}
+                className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all duration-200 ${
+                  bookingTypeFilter === opt.id
+                    ? 'bg-[#1a1815] text-white border-[#1a1815]'
+                    : 'bg-white text-[#1a1815] border-[#e2ddd8] hover:border-[#b5936b]'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Result count */}
         {!loading && meta && (
           <p className="text-sm text-black mt-4 font-medium">
@@ -131,6 +157,11 @@ function PropertiesPage() {
             {category !== 'all' && (
               <span className="ml-1">
                 in <span className="font-bold text-[#8a6b4a] capitalize">{category}</span>
+              </span>
+            )}
+            {category === 'lodge' && bookingTypeFilter !== 'all' && (
+              <span className="ml-1">
+                (<span className="font-bold text-[#8a6b4a] capitalize">{bookingTypeFilter}</span>)
               </span>
             )}
           </p>

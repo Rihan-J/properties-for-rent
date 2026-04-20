@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,7 +21,8 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      router.push('/');
+      const redirectUrl = searchParams.get('redirect') || '/';
+      router.push(redirectUrl);
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please try again.');
     } finally {
@@ -82,7 +84,10 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-black mt-6">
             Don&apos;t have an account?{' '}
-            <Link href="/auth/register" className="text-black font-bold hover:text-[#8a6b4a] transition-colors">
+            <Link 
+              href={`/auth/register${searchParams.get('redirect') ? `?redirect=${encodeURIComponent(searchParams.get('redirect'))}` : ''}`} 
+              className="text-black font-bold hover:text-[#8a6b4a] transition-colors"
+            >
               Register
             </Link>
           </p>
