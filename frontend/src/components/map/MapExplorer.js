@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import debounce from 'lodash.debounce';
 import api from '@/lib/api';
 import { getCurrentPosition } from '@/lib/geo';
 import MapSkeleton from '@/components/map/MapSkeleton';
@@ -75,6 +76,11 @@ export default function MapExplorer() {
     }
   }, []);
 
+  const debouncedFetchNearbyProperties = useMemo(
+    () => debounce(fetchNearbyProperties, 400),
+    [fetchNearbyProperties]
+  );
+
   // ─── Initial geolocation ─────────────────────────────
   useEffect(() => {
     async function init() {
@@ -88,7 +94,7 @@ export default function MapExplorer() {
         setGeoStatus('granted');
         setUserLocation([pos.lat, pos.lng]);
         setLocationName('Your location');
-        await fetchNearbyProperties(pos.lat, pos.lng, radius, category, bookingTypeFilter);
+        debouncedFetchNearbyProperties(pos.lat, pos.lng, radius, category, bookingTypeFilter);
       } else {
         // Fallback to Bangalore
         setLat(DEFAULT_CENTER.lat);
@@ -96,7 +102,7 @@ export default function MapExplorer() {
         setZoom(FALLBACK_ZOOM);
         setGeoStatus('denied');
         setLocationName('Bangalore (default)');
-        await fetchNearbyProperties(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radius, category, bookingTypeFilter);
+        debouncedFetchNearbyProperties(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radius, category, bookingTypeFilter);
       }
 
       setLoading(false);
@@ -113,8 +119,8 @@ export default function MapExplorer() {
     setZoom(13);
     setGeoStatus('searched');
     setLocationName(name || 'Selected location');
-    await fetchNearbyProperties(newLat, newLng, radius, category, bookingTypeFilter);
-  }, [radius, category, bookingTypeFilter, fetchNearbyProperties]);
+    debouncedFetchNearbyProperties(newLat, newLng, radius, category, bookingTypeFilter);
+  }, [radius, category, bookingTypeFilter, debouncedFetchNearbyProperties]);
 
   // ─── Handle radius change ────────────────────────────
   const handleRadiusChange = useCallback(async (newRadius) => {
@@ -124,20 +130,22 @@ export default function MapExplorer() {
     const zoomMap = { 2: 15, 5: 14, 10: 13, 20: 12 };
     setZoom(zoomMap[newRadius] || 13);
 
-    await fetchNearbyProperties(lat, lng, newRadius, category, bookingTypeFilter);
-  }, [lat, lng, category, bookingTypeFilter, fetchNearbyProperties]);
+    debouncedFetchNearbyProperties(lat, lng, newRadius, category, bookingTypeFilter);
+  }, [lat, lng, category, bookingTypeFilter, debouncedFetchNearbyProperties]);
 
   // ─── Handle category change ────────────────────────────
   const handleCategoryChange = useCallback(async (newCategory) => {
+    if (loading) return;
     setCategory(newCategory);
     setBookingTypeFilter('all');
-    await fetchNearbyProperties(lat, lng, radius, newCategory, 'all');
-  }, [lat, lng, radius, fetchNearbyProperties]);
+    debouncedFetchNearbyProperties(lat, lng, radius, newCategory, 'all');
+  }, [lat, lng, radius, loading, debouncedFetchNearbyProperties]);
 
   const handleBookingTypeChange = useCallback(async (newBookingType) => {
+    if (loading) return;
     setBookingTypeFilter(newBookingType);
-    await fetchNearbyProperties(lat, lng, radius, category, newBookingType);
-  }, [lat, lng, radius, category, fetchNearbyProperties]);
+    debouncedFetchNearbyProperties(lat, lng, radius, category, newBookingType);
+  }, [lat, lng, radius, category, loading, debouncedFetchNearbyProperties]);
 
   // ─── Recenter on user location ────────────────────────
   const handleRecenter = useCallback(async () => {
@@ -149,9 +157,9 @@ export default function MapExplorer() {
       setGeoStatus('granted');
       setUserLocation([pos.lat, pos.lng]);
       setLocationName('Your location');
-      await fetchNearbyProperties(pos.lat, pos.lng, radius, category, bookingTypeFilter);
+      debouncedFetchNearbyProperties(pos.lat, pos.lng, radius, category, bookingTypeFilter);
     }
-  }, [radius, category, bookingTypeFilter, fetchNearbyProperties]);
+  }, [radius, category, bookingTypeFilter, debouncedFetchNearbyProperties]);
 
   // ─── Status badge info ────────────────────────────────
   function getStatusBadge() {

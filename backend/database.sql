@@ -101,3 +101,16 @@ FROM nearby
 WHERE distance_km <= 10
 ORDER BY distance_km ASC
 LIMIT 50 OFFSET 0;
+
+CREATE TABLE IF NOT EXISTS settings (
+  id INT PRIMARY KEY DEFAULT 1,
+  brand_name VARCHAR(100) NOT NULL DEFAULT 'Namma Stay',
+  brand_initials VARCHAR(10) NOT NULL DEFAULT 'NS',
+  brand_tagline VARCHAR(255) NOT NULL DEFAULT 'Your perfect local stay',
+  CHECK (id = 1)
+);
+
+INSERT INTO settings (id, brand_name, brand_initials, brand_tagline)
+VALUES (1, 'Namma Stay', 'NS', 'Your perfect local stay')
+ON CONFLICT (id) DO NOTHING;
+

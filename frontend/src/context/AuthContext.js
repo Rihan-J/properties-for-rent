@@ -42,8 +42,8 @@ export function AuthProvider({ children }) {
     return userData;
   }, []);
 
-  const register = useCallback(async (name, email, password, role = 'user', phone) => {
-    const res = await api.post('/auth/register', { name, email, password, role, phone });
+  const register = useCallback(async (name, email, password, role = 'user', phone, accepted_terms = false) => {
+    const res = await api.post('/auth/register', { name, email, password, role, phone, accepted_terms });
     const { token: newToken, user: userData } = res.data.data;
     localStorage.setItem('apnastay_token', newToken);
     localStorage.setItem('apnastay_user', JSON.stringify(userData));

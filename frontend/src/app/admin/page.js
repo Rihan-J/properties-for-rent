@@ -5,6 +5,17 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { getOptimizedImageUrl } from '@/lib/cloudinary';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  CartesianGrid,
+  LabelList
+} from 'recharts';
 
 // ─── Tab Button ─────────────────────────────────────────
 function Tab({ active, onClick, children, count }) {
@@ -364,9 +375,306 @@ function ReviewsPanel() {
   );
 }
 
+// ─── Support Info Tab (Admin) ───────────────────────────
+function SupportPanel() {
+  const [support, setSupport] = useState({ email: '', phone: '', whatsapp: '', instagram: '' });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  useEffect(() => {
+    async function fetchSupport() {
+      try {
+        const res = await api.get('/support');
+        setSupport(res.data.data);
+      } catch {
+        setError('Failed to load support info');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSupport();
+  }, []);
+
+  async function handleSave() {
+    setSaving(true);
+    setError('');
+    setSuccessMsg('');
+
+    try {
+      const res = await api.put('/admin/support', support);
+      setSupport(res.data.data);
+      setSuccessMsg('Support info updated successfully!');
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to update support info');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl border border-[#e8e2db] p-8 animate-pulse space-y-5">
+        {[1, 2, 3, 4].map(i => <div key={i} className="h-12 bg-[#f0ece7] rounded-xl" />)}
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-8">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 bg-[#fdf8f4] border border-[#f0ece7] rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-[#b5936b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-[#1a1815]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+            Support Contact Info
+          </h3>
+          <p className="text-sm text-[#5a5550]">Visible to all users and owners</p>
+        </div>
+      </div>
+
+      {error && (
+        <div className="flex items-start gap-3 px-4 py-3.5 bg-white border border-red-200 rounded-xl text-sm text-red-600 font-medium mb-5">
+          {error}
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="flex items-start gap-3 px-4 py-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium mb-5">
+          ✅ {successMsg}
+        </div>
+      )}
+
+      <div className="space-y-5">
+        <div>
+          <label className="block text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-2">Email</label>
+          <input
+            type="email"
+            value={support.email || ''}
+            onChange={(e) => setSupport(prev => ({ ...prev, email: e.target.value }))}
+            className="w-full px-4 py-3 bg-[#faf9f7] border border-[#e2ddd8] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#b5936b]/40 focus:border-[#b5936b] transition-all duration-200 text-[#1a1815] text-sm placeholder:text-[#b8b0a6]"
+            placeholder="support@apnastay.com"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-2">Phone</label>
+          <input
+            type="tel"
+            value={support.phone || ''}
+            onChange={(e) => setSupport(prev => ({ ...prev, phone: e.target.value }))}
+            className="w-full px-4 py-3 bg-[#faf9f7] border border-[#e2ddd8] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#b5936b]/40 focus:border-[#b5936b] transition-all duration-200 text-[#1a1815] text-sm placeholder:text-[#b8b0a6]"
+            placeholder="9876543210"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-2">WhatsApp Number</label>
+          <input
+            type="tel"
+            value={support.whatsapp || ''}
+            onChange={(e) => setSupport(prev => ({ ...prev, whatsapp: e.target.value }))}
+            className="w-full px-4 py-3 bg-[#faf9f7] border border-[#e2ddd8] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#b5936b]/40 focus:border-[#b5936b] transition-all duration-200 text-[#1a1815] text-sm placeholder:text-[#b8b0a6]"
+            placeholder="9876543210"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-2">Instagram Handle</label>
+          <input
+            type="text"
+            value={support.instagram || ''}
+            onChange={(e) => setSupport(prev => ({ ...prev, instagram: e.target.value }))}
+            className="w-full px-4 py-3 bg-[#faf9f7] border border-[#e2ddd8] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#b5936b]/40 focus:border-[#b5936b] transition-all duration-200 text-[#1a1815] text-sm placeholder:text-[#b8b0a6]"
+            placeholder="@apnastay"
+          />
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full py-3.5 bg-[#1a1815] text-white font-bold rounded-xl shadow-sm hover:bg-[#2e2a25] hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-sm mt-2"
+        >
+          {saving ? 'Updating…' : 'Update Support Info'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Analytics Tab (Admin) ──────────────────────────────
+function AnalyticsPanel() {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await api.get('/admin/stats');
+        setStats(res.data.data);
+      } catch (err) {
+        setError('Failed to load analytics data.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl border border-[#e8e2db] p-8 animate-pulse space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {[1, 2, 3].map(i => <div key={i} className="h-24 bg-[#f0ece7] rounded-xl" />)}
+        </div>
+        <div className="h-64 bg-[#f0ece7] rounded-xl" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-2xl border border-red-200 p-8 text-center text-red-600 font-medium">
+        {error}
+      </div>
+    );
+  }
+
+  if (!stats) return null;
+
+  // Custom active shape for a gradient effect
+  const colors = ['url(#colorGold)', 'url(#colorGold)', 'url(#colorGold)'];
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-6 flex flex-col justify-center relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
+            <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          </div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#5a5550] mb-1 relative z-10">Total Users</p>
+          <p className="text-4xl font-semibold text-[#1a1815] relative z-10" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+            {stats.totalUsers}
+          </p>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-6 flex flex-col justify-center relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
+            <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+          </div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#5a5550] mb-1 relative z-10">Total Owners</p>
+          <p className="text-4xl font-semibold text-[#1a1815] relative z-10" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+            {stats.totalOwners}
+          </p>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-6 flex flex-col justify-center relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
+            <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          </div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#5a5550] mb-1 relative z-10">Total Properties</p>
+          <p className="text-4xl font-semibold text-[#1a1815] relative z-10" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+            {stats.totalProperties}
+          </p>
+        </div>
+      </div>
+
+      {/* Chart Section */}
+      <div className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-6 lg:p-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h3 className="text-xl font-semibold text-[#1a1815]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+              Category Breakdown
+            </h3>
+            <p className="text-sm text-[#5a5550] mt-1">Distribution of properties across categories</p>
+          </div>
+          <div className="w-10 h-10 bg-[#fdf8f4] border border-[#f0ece7] rounded-xl flex items-center justify-center">
+            <svg className="w-5 h-5 text-[#b5936b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+        </div>
+        
+        {stats.categories && stats.categories.length > 0 ? (
+          <div className="h-[350px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={stats.categories}
+                margin={{ top: 30, right: 10, left: -20, bottom: 10 }}
+              >
+                <defs>
+                  <linearGradient id="colorGold" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#b5936b" stopOpacity={1}/>
+                    <stop offset="100%" stopColor="#8a6b4a" stopOpacity={1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0ece7" />
+                <XAxis 
+                  dataKey="category" 
+                  axisLine={{ stroke: '#e8e2db' }}
+                  tickLine={false}
+                  tick={{ fontSize: 13, fill: '#1a1815', fontWeight: 600, textTransform: 'capitalize' }}
+                  dy={15}
+                />
+                <YAxis 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: '#8a8580' }}
+                  allowDecimals={false}
+                  dx={-10}
+                />
+                <Tooltip 
+                  cursor={{ fill: '#faf9f7', radius: 8 }}
+                  contentStyle={{ 
+                    borderRadius: '12px', 
+                    border: '1px solid #e8e2db',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                    padding: '12px 16px',
+                    backgroundColor: '#ffffff'
+                  }}
+                  itemStyle={{ color: '#1a1815', fontWeight: 'bold', fontSize: '15px' }}
+                  labelStyle={{ color: '#8a8580', textTransform: 'capitalize', marginBottom: '4px', fontSize: '13px' }}
+                />
+                <Bar 
+                  dataKey="count" 
+                  radius={[8, 8, 8, 8]} 
+                  barSize={48}
+                  background={{ fill: '#f7f4f0', radius: [8, 8, 8, 8] }}
+                  animationDuration={1500}
+                >
+                  {stats.categories.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill="url(#colorGold)" />
+                  ))}
+                  <LabelList 
+                    dataKey="count" 
+                    position="top" 
+                    fill="#1a1815" 
+                    fontWeight="bold"
+                    fontSize={14}
+                    offset={10}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="h-[200px] flex items-center justify-center text-[#5a5550] text-sm bg-[#faf9f7] rounded-xl border border-dashed border-[#e2ddd8]">
+            No properties found
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Admin Panel ───────────────────────────────────
 function AdminPanel() {
-  const [activeTab, setActiveTab] = useState('properties');
+  const [activeTab, setActiveTab] = useState('analytics');
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 lg:py-14">
@@ -377,18 +685,26 @@ function AdminPanel() {
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div className="flex flex-wrap gap-2 mb-8 border-b border-[#e8e2db] pb-4">
+        <Tab active={activeTab === 'analytics'} onClick={() => setActiveTab('analytics')}>
+          📊 Analytics
+        </Tab>
         <Tab active={activeTab === 'properties'} onClick={() => setActiveTab('properties')}>
           📋 Properties
         </Tab>
         <Tab active={activeTab === 'reviews'} onClick={() => setActiveTab('reviews')}>
           ⭐ Reviews
         </Tab>
+        <Tab active={activeTab === 'support'} onClick={() => setActiveTab('support')}>
+          📞 Support Info
+        </Tab>
       </div>
 
       {/* Tab Content */}
+      {activeTab === 'analytics' && <AnalyticsPanel />}
       {activeTab === 'properties' && <PropertiesPanel />}
       {activeTab === 'reviews' && <ReviewsPanel />}
+      {activeTab === 'support' && <SupportPanel />}
     </div>
   );
 }

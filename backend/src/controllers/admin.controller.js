@@ -141,4 +141,51 @@ async function getOwnerDetails(req, res, next) {
   }
 }
 
-module.exports = { getAllProperties, approveProperty, deleteProperty, getOwnerDetails };
+// ─── Admin Stats (Analytics) ────────────────────────────
+
+async function getAdminStats(req, res, next) {
+  try {
+    // Single query for user counts by role
+    const usersResult = await pool.query(`
+      SELECT
+        COUNT(*) FILTER (WHERE role = 'user') AS total_users,
+        COUNT(*) FILTER (WHERE role = 'owner') AS total_owners
+      FROM users
+    `);
+
+    // Total properties + category breakdown in one query
+    const propsResult = await pool.query(`
+      SELECT
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE category = 'home') AS home,
+        COUNT(*) FILTER (WHERE category = 'room') AS room,
+        COUNT(*) FILTER (WHERE category = 'shop') AS shop,
+        COUNT(*) FILTER (WHERE category = 'pg') AS pg,
+        COUNT(*) FILTER (WHERE category = 'lodge') AS lodge,
+        COUNT(*) FILTER (WHERE category = 'site') AS site
+      FROM properties
+    `);
+
+    // Category breakdown as array for charts
+    const categoryResult = await pool.query(`
+      SELECT category, COUNT(*)::int AS count
+      FROM properties
+      GROUP BY category
+      ORDER BY count DESC
+    `);
+
+    const users = usersResult.rows[0];
+    const props = propsResult.rows[0];
+
+    return success(res, {
+      totalUsers: parseInt(users.total_users, 10),
+      totalOwners: parseInt(users.total_owners, 10),
+      totalProperties: parseInt(props.total, 10),
+      categories: categoryResult.rows,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { getAllProperties, approveProperty, deleteProperty, getOwnerDetails, getAdminStats };

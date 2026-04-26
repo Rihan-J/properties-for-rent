@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useState, useSyncExternalStore } from 'react';
-import { BRAND } from '@/config/brand.config';
 
 export default function Navbar() {
   const { user, logout, isOwner, isAdmin } = useAuth();
@@ -25,9 +24,9 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-[#1a1815] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{BRAND.initials}</span>
+              <span className="text-white font-bold text-sm" style={{ fontFamily: "'Cormorant Garamond', serif" }}>AS</span>
             </div>
-            <span className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{BRAND.name}</span>
+            <span className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Apna Stay</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -55,6 +54,12 @@ export default function Navbar() {
                   {authUser.name}
                   <span className="ml-2 px-2.5 py-1 bg-[#f0ece7] text-black border border-[#e2ddd8] rounded-full text-[10px] font-bold uppercase tracking-wider">{authUser.role}</span>
                 </span>
+                <Link
+                  href="/account"
+                  className="px-4 py-2 text-sm font-bold text-black border border-[#e2ddd8] rounded-xl hover:bg-white hover:border-[#b5936b] transition-all duration-300 active:scale-[0.98]"
+                >
+                  Account
+                </Link>
                 <button
                   onClick={logout}
                   className="px-4 py-2 text-sm font-bold text-black border border-[#e2ddd8] rounded-xl hover:bg-white hover:text-red-600 hover:border-red-200 transition-all duration-300 active:scale-[0.98]"
@@ -104,6 +109,7 @@ export default function Navbar() {
             {authUser ? (
               <>
                 <div className="h-px bg-[#e8e2db] my-1 mx-2" />
+                <Link href="/account" onClick={() => setMenuOpen(false)} className="px-4 py-3 text-[#1a1815] hover:bg-[#f7f4f0] rounded-xl text-center text-[15px] font-semibold transition-colors">Account</Link>
                 <button onClick={() => { logout(); setMenuOpen(false); }} className="mt-1 px-4 py-3 text-white bg-[#1a1815] hover:bg-[#2e2a25] rounded-xl text-[15px] font-bold text-center transition-colors">Logout</button>
               </>
             ) : (

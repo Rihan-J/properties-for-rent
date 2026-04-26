@@ -4,12 +4,14 @@ const {
   approveProperty,
   deleteProperty,
   getOwnerDetails,
+  getAdminStats,
 } = require('../controllers/admin.controller');
 const {
   getAllReviews,
   deleteReview,
 } = require('../controllers/review.controller');
 const { protect, authorize } = require('../middleware/auth');
+const { updateSupportInfo } = require('../controllers/support.controller');
 
 const router = Router();
 
@@ -27,5 +29,11 @@ router.get('/users/:id', getOwnerDetails);
 // Reviews management
 router.get('/reviews', getAllReviews);
 router.delete('/reviews/:id', deleteReview);
+
+// Support info management
+router.put('/support', updateSupportInfo);
+
+// Analytics
+router.get('/stats', getAdminStats);
 
 module.exports = router;

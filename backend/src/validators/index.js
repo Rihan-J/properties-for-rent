@@ -32,6 +32,9 @@ function validateRegister(body) {
   if (!phone || !/^\+?[0-9]{10,15}$/.test(phone)) {
     errors.push('Phone is required and must be a valid 10-15 digit number');
   }
+  if (!body.accepted_terms || body.accepted_terms !== true) {
+    errors.push('You must accept the Privacy Policy to create an account');
+  }
 
   return { valid: errors.length === 0, errors };
 }

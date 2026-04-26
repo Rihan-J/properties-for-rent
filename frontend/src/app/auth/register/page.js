@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 import { Suspense } from 'react';
-import { BRAND } from '@/config/brand.config';
 
 function RegisterContent() {
   const { register } = useAuth();
@@ -17,6 +16,7 @@ function RegisterContent() {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('user');
+  const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -24,6 +24,12 @@ function RegisterContent() {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    if (!accepted) {
+      setError('You must accept the Privacy Policy to create an account');
+      setLoading(false);
+      return;
+    }
 
     const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
     if (!strongPasswordRegex.test(password)) {
@@ -33,7 +39,7 @@ function RegisterContent() {
     }
 
     try {
-      await register(name, email, password, role, phone);
+      await register(name, email, password, role, phone, accepted);
       const redirectUrl = searchParams.get('redirect') || '/';
       router.push(redirectUrl);
     } catch (err) {
@@ -48,10 +54,10 @@ function RegisterContent() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-12 h-12 bg-[#1a1815] rounded-xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-base" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{BRAND.initials}</span>
+            <span className="text-white font-bold text-base" style={{ fontFamily: "'Cormorant Garamond', serif" }}>AS</span>
           </div>
           <h1 className="text-3xl font-semibold text-[#1a1815]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Create your account</h1>
-          <p className="text-black mt-2 text-sm">Join {BRAND.name} to {BRAND.tagline}</p>
+          <p className="text-black mt-2 text-sm">Join Apna Stay to find or list properties</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-8 space-y-5">
@@ -146,6 +152,23 @@ function RegisterContent() {
               </button>
             </div>
           </div>
+
+          <label className="flex items-start gap-3 mt-1 cursor-pointer group" htmlFor="accept-terms">
+            <input
+              id="accept-terms"
+              type="checkbox"
+              checked={accepted}
+              onChange={(e) => setAccepted(e.target.checked)}
+              className="mt-0.5 w-4 h-4 accent-[#b5936b] rounded border-[#e2ddd8] cursor-pointer"
+            />
+            <span className="text-sm text-[#5a5550] leading-snug">
+              I agree to the{' '}
+              <Link href="/privacy" className="text-[#b5936b] font-semibold underline underline-offset-2 hover:text-[#8a6b4a] transition-colors">
+                Privacy Policy
+              </Link>{' '}
+              &amp; Terms of Service
+            </span>
+          </label>
 
           <button
             type="submit"

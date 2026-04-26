@@ -12,7 +12,7 @@ async function register(req, res, next) {
     const { valid, errors } = validateRegister(req.body);
     if (!valid) return fail(res, errors.join(', '), 400);
 
-    const { name, email, password, role, phone } = req.body;
+    const { name, email, password, role, phone, accepted_terms } = req.body;
     const normalizedEmail = email.trim().toLowerCase();
 
     // Check if email already exists (avoid waiting for DB constraint error)
@@ -29,10 +29,10 @@ async function register(req, res, next) {
     const userPhone = phone ? phone.trim() : null;
 
     const result = await pool.query(
-      `INSERT INTO users (name, email, password, role, phone)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, name, email, role, phone, created_at`,
-      [name.trim(), normalizedEmail, hashedPassword, userRole, userPhone]
+      `INSERT INTO users (name, email, password, role, phone, accepted_terms)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, name, email, role, phone, accepted_terms, created_at`,
+      [name.trim(), normalizedEmail, hashedPassword, userRole, userPhone, !!accepted_terms]
     );
 
     const user = result.rows[0];
