@@ -29,7 +29,10 @@ app.use(helmet({
 }));
 
 // Parse CORS_ORIGIN as comma-separated list for multi-origin support (e.g. staging + production)
-const corsOrigins = CORS_ORIGIN.includes(',') ? CORS_ORIGIN.split(',').map(o => o.trim()) : CORS_ORIGIN;
+// Auto-strip trailing slashes to prevent CORS mismatch
+const corsOrigins = CORS_ORIGIN.includes(',')
+  ? CORS_ORIGIN.split(',').map(o => o.trim().replace(/\/+$/, ''))
+  : CORS_ORIGIN.trim().replace(/\/+$/, '');
 app.use(cors({
   origin: corsOrigins,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
