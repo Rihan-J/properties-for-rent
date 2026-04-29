@@ -13,7 +13,7 @@ const router = Router();
 
 // Public routes
 router.get('/', protect, cacheResponse(60), getProperties);
-router.get('/nearby', cacheResponse(45, { keyBuilder: buildNearbyCacheKey }), getNearbyProperties);
+router.get('/nearby', cacheResponse(90, { keyBuilder: buildNearbyCacheKey }), getNearbyProperties);
 router.get('/:id', getPropertyById);
 
 // Protected routes — owner or admin only

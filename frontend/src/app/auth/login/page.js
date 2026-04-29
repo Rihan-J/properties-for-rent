@@ -35,11 +35,9 @@ function LoginContent() {
     <div className="min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-[#1a1815] rounded-xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-base" style={{ fontFamily: "'Cormorant Garamond', serif" }}>AS</span>
-          </div>
+          <img src="/logo.png" alt="Properties for Rentz" className="w-12 h-12 rounded-xl object-contain mx-auto mb-4" />
           <h1 className="text-3xl font-semibold text-[#1a1815]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Welcome back</h1>
-          <p className="text-black mt-2 text-sm">Sign in to your Apna Stay account</p>
+          <p className="text-black mt-2 text-sm">Sign in to your Properties for Rentz account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-8 space-y-5">

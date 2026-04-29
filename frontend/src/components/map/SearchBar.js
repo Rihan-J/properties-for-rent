@@ -15,14 +15,21 @@ export default function SearchBar({ onLocationSelect, onClear, disabled = false 
   const containerRef = useRef(null);
   const inputRef = useRef(null);
   const debounceRef = useRef(null);
+  const abortRef = useRef(null);
 
-  // Debounced geocoding search
+  // Debounced geocoding search with AbortController to cancel stale requests
   const searchLocation = useCallback(async (searchQuery) => {
-    if (!searchQuery || searchQuery.trim().length < 2) {
+    // Cancel any in-flight request
+    if (abortRef.current) abortRef.current.abort();
+
+    if (!searchQuery || searchQuery.trim().length < 3) {
       setResults([]);
       setIsOpen(false);
       return;
     }
+
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     setLoading(true);
     try {
@@ -32,25 +39,32 @@ export default function SearchBar({ onLocationSelect, onClear, disabled = false 
           headers: {
             'Accept-Language': 'en',
           },
+          signal: controller.signal,
         }
       );
       const data = await response.json();
-      setResults(data);
-      setIsOpen(data.length > 0);
-      setActiveIndex(-1);
+      if (!controller.signal.aborted) {
+        setResults(data);
+        setIsOpen(data.length > 0);
+        setActiveIndex(-1);
+      }
     } catch (err) {
-      setResults([]);
+      if (err.name !== 'AbortError') {
+        setResults([]);
+      }
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
   }, []);
 
-  // Debounce input
+  // Debounce input — 500ms to prevent per-keystroke API calls
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       searchLocation(query);
-    }, 300);
+    }, 500);
     return () => clearTimeout(debounceRef.current);
   }, [query, searchLocation]);
 

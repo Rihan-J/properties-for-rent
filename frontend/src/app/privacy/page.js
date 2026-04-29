@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Privacy Policy — Apna Stay',
-  description: 'Learn how Apna Stay collects, uses, and protects your personal data.',
+  title: 'Privacy Policy — Properties for Rentz',
+  description: 'Learn how Properties for Rentz collects, uses, and protects your personal data.',
 };
 
 export default function PrivacyPage() {
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
           {/* Intro */}
           <section>
             <p className="text-[#3d3a36] leading-relaxed text-[15px]">
-              At Apna Stay, your privacy matters. This policy explains what personal information we collect,
+              At Properties for Rentz, your privacy matters. This policy explains what personal information we collect,
               why we collect it, and how we keep it safe. By creating an account, you agree to the practices
               described below.
             </p>
@@ -77,7 +77,7 @@ export default function PrivacyPage() {
             <ul className="space-y-2 text-[15px] text-[#3d3a36]">
               <li className="flex items-start gap-3">
                 <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b5936b] flex-shrink-0" />
-                <span>To create and manage your Apna Stay account</span>
+                <span>To create and manage your Properties for Rentz account</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b5936b] flex-shrink-0" />
@@ -167,10 +167,10 @@ export default function PrivacyPage() {
             <p className="text-[15px] text-[#3d3a36] leading-relaxed">
               If you have questions or concerns about this Privacy Policy, please reach out to us at{' '}
               <a
-                href="mailto:support@apnastay.com"
+                href="mailto:propertiesforrentz.in@gmail.com"
                 className="text-[#b5936b] font-semibold underline underline-offset-2 hover:text-[#8a6b4a] transition-colors"
               >
-                support@apnastay.com
+                propertiesforrentz.in@gmail.com
               </a>
             </p>
           </section>
@@ -178,7 +178,7 @@ export default function PrivacyPage() {
 
         {/* Footer note */}
         <p className="text-center text-xs text-[#9e968d] mt-8">
-          © 2026 Apna Stay. All rights reserved.
+          © 2026 Properties for Rentz. All rights reserved.
         </p>
       </div>
     </div>

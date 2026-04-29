@@ -23,10 +23,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-[#1a1815] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm" style={{ fontFamily: "'Cormorant Garamond', serif" }}>AS</span>
-            </div>
-            <span className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Apna Stay</span>
+            <img src="/logo.png" alt="Properties for Rentz" className="w-9 h-9 rounded-lg object-contain" />
+            <span className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Properties for Rentz</span>
           </Link>
 
           {/* Desktop Nav */}

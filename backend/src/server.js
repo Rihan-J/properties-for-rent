@@ -11,7 +11,7 @@ async function start() {
     console.log(`[DB] Connected to PostgreSQL at ${result.rows[0].now}`);
 
     app.listen(PORT, () => {
-      console.log(`[SERVER] Apna Stay API running on port ${PORT} (${env.NODE_ENV})`);
+      console.log(`[SERVER] Properties for Rentz API running on port ${PORT} (${env.NODE_ENV})`);
     });
   } catch (err) {
     console.error('[FATAL] Failed to connect to database:', err.message);

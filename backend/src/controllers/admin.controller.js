@@ -3,6 +3,7 @@ const { success, fail } = require('../utils/response');
 const { validatePagination } = require('../validators');
 const { deleteImage } = require('../utils/cloudinary');
 const { invalidatePropertyCaches } = require('../middleware/cache');
+const { isValidUUID } = require('../utils/uuid');
 
 // ─── Get All Properties (any status) ────────────────────
 
@@ -41,6 +42,7 @@ async function getAllProperties(req, res, next) {
 async function approveProperty(req, res, next) {
   try {
     const { id } = req.params;
+    if (!isValidUUID(id)) return fail(res, 'Invalid property ID', 400);
 
     // Validate property exists
     const existing = await pool.query(
@@ -73,8 +75,7 @@ async function approveProperty(req, res, next) {
 async function deleteProperty(req, res, next) {
   try {
     const { id } = req.params;
-
-    // Validate property exists and fetch image_url for Cloudinary cleanup
+    if (!isValidUUID(id)) return fail(res, 'Invalid property ID', 400);
     const existing = await pool.query(
       'SELECT id, image_url FROM properties WHERE id = $1',
       [id]
@@ -103,6 +104,7 @@ async function deleteProperty(req, res, next) {
 async function getOwnerDetails(req, res, next) {
   try {
     const { id } = req.params;
+    if (!isValidUUID(id)) return fail(res, 'Invalid user ID', 400);
 
     // Fetch user info
     const userResult = await pool.query(

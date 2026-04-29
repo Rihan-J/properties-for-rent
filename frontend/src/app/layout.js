@@ -3,7 +3,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 
 export const metadata = {
-  title: 'Apna Stay — Find Your Perfect Stay',
+  title: 'Properties for Rentz — Find Your Perfect Stay',
   description: 'Discover and rent properties near you. Browse apartments, houses, PGs, and more on an interactive map.',
 };
 

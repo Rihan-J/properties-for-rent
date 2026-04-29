@@ -7,6 +7,7 @@ const {
   validatePagination,
 } = require('../validators');
 const { invalidatePropertyCaches } = require('../middleware/cache');
+const { isValidUUID } = require('../utils/uuid');
 
 async function createProperty(req, res, next) {
   try {
@@ -126,31 +127,22 @@ async function getProperties(req, res, next) {
     const normalizedBookingType = VALID_BOOKING_TYPES.includes(bookingType) ? bookingType : null;
 
     const conditions = [];
-    const countConditions = [];
     const params = [];
-    const countParams = [];
     let paramIndex = 1;
-    let countParamIndex = 1;
 
     if (user.role !== 'admin') {
       conditions.push(`p.owner_id = $${paramIndex++}`);
       params.push(user.id);
-      countConditions.push(`p.owner_id = $${countParamIndex++}`);
-      countParams.push(user.id);
     }
 
     conditions.push(`(p.category != 'site' OR u.role = 'admin')`);
-    countConditions.push(`(p.category != 'site' OR u.role = 'admin')`);
 
     if (category && category !== 'all' && VALID_CATEGORIES.includes(category)) {
       if (category === 'site') {
         conditions.push(`p.category = 'site' AND u.role = 'admin'`);
-        countConditions.push(`p.category = 'site' AND u.role = 'admin'`);
       } else {
         conditions.push(`p.category = $${paramIndex++}`);
         params.push(category);
-        countConditions.push(`p.category = $${countParamIndex++}`);
-        countParams.push(category);
       }
     }
 
@@ -158,24 +150,15 @@ async function getProperties(req, res, next) {
       conditions.push(`p.category = 'lodge' AND (p.booking_type = $${paramIndex} OR p.booking_type = 'both')`);
       params.push(normalizedBookingType);
       paramIndex++;
-      countConditions.push(`p.category = 'lodge' AND (p.booking_type = $${countParamIndex} OR p.booking_type = 'both')`);
-      countParams.push(normalizedBookingType);
-      countParamIndex++;
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-    const countWhereClause = countConditions.length > 0 ? `WHERE ${countConditions.join(' AND ')}` : '';
-
-    const countResult = await pool.query(
-      `SELECT COUNT(*) FROM properties p JOIN users u ON u.id = p.owner_id ${countWhereClause}`,
-      countParams
-    );
-    const total = parseInt(countResult.rows[0].count, 10);
 
     params.push(limit, offset);
     const limitParam = paramIndex++;
     const offsetParam = paramIndex++;
 
+    // Single query: data + total count via window function (eliminates one DB round-trip)
     const result = await pool.query(
       `SELECT
          p.id,
@@ -190,7 +173,8 @@ async function getProperties(req, res, next) {
          p.category,
          p.booking_type,
          p.price_per_hour,
-         p.price_per_day
+         p.price_per_day,
+         COUNT(*) OVER() AS _total_count
        FROM properties p
        JOIN users u ON u.id = p.owner_id
        ${whereClause}
@@ -199,7 +183,11 @@ async function getProperties(req, res, next) {
       params
     );
 
-    return success(res, { properties: result.rows }, 200, {
+    const total = result.rows.length > 0 ? parseInt(result.rows[0]._total_count, 10) : 0;
+    // Strip the _total_count field from response rows
+    const properties = result.rows.map(({ _total_count, ...rest }) => rest);
+
+    return success(res, { properties }, 200, {
       page,
       limit,
       total,
@@ -232,6 +220,7 @@ async function getNearbyProperties(req, res, next) {
     const minLng = lng - lngDelta;
     const maxLng = lng + lngDelta;
 
+    // Single query: data + total count via COUNT(*) OVER() (eliminates one full DB round-trip)
     const result = await pool.query(
       `WITH nearby AS (
         SELECT
@@ -270,7 +259,8 @@ async function getNearbyProperties(req, res, next) {
             OR (p.category = 'lodge' AND (p.booking_type = $11 OR p.booking_type = 'both'))
           )
       )
-      SELECT id, title, price, lat, lng, image_url, category, booking_type, price_per_hour, price_per_day, distance_km
+      SELECT id, title, price, lat, lng, image_url, category, booking_type, price_per_hour, price_per_day, distance_km,
+             COUNT(*) OVER() AS _total_count
       FROM nearby
       WHERE distance_km <= $7
       ORDER BY distance_km ASC
@@ -278,41 +268,11 @@ async function getNearbyProperties(req, res, next) {
       [lat, lng, minLat, maxLat, minLng, maxLng, radiusKm, limit, offset, category, normalizedBookingType]
     );
 
-    const countResult = await pool.query(
-      `WITH nearby AS (
-        SELECT
-          (
-            6371 * acos(
-              LEAST(1.0, GREATEST(-1.0,
-                cos(radians($1)) * cos(radians(p.latitude)) *
-                cos(radians(p.longitude) - radians($2)) +
-                sin(radians($1)) * sin(radians(p.latitude))
-              ))
-            )
-          ) AS distance_km
-        FROM properties p
-        JOIN users u ON u.id = p.owner_id
-        WHERE p.status = 'approved'
-          AND p.latitude BETWEEN $3 AND $4
-          AND p.longitude BETWEEN $5 AND $6
-          AND (p.category != 'site' OR u.role = 'admin')
-          AND (
-            $8::text IS NULL
-            OR ($8::text = 'site' AND p.category = 'site' AND u.role = 'admin')
-            OR ($8::text != 'site' AND p.category = $8)
-          )
-          AND (
-            $9::text IS NULL
-            OR (p.category = 'lodge' AND (p.booking_type = $9 OR p.booking_type = 'both'))
-          )
-      )
-      SELECT COUNT(*) FROM nearby WHERE distance_km <= $7`,
-      [lat, lng, minLat, maxLat, minLng, maxLng, radiusKm, category, normalizedBookingType]
-    );
+    const total = result.rows.length > 0 ? parseInt(result.rows[0]._total_count, 10) : 0;
+    // Strip the _total_count field from response rows
+    const properties = result.rows.map(({ _total_count, ...rest }) => rest);
 
-    const total = parseInt(countResult.rows[0].count, 10);
-
-    return success(res, { properties: result.rows }, 200, {
+    return success(res, { properties }, 200, {
       page,
       limit,
       total,
@@ -328,6 +288,7 @@ async function getNearbyProperties(req, res, next) {
 async function getPropertyById(req, res, next) {
   try {
     const { id } = req.params;
+    if (!isValidUUID(id)) return fail(res, 'Invalid property ID', 400);
 
     const result = await pool.query(
       `SELECT
@@ -373,6 +334,7 @@ async function getPropertyById(req, res, next) {
 async function deleteProperty(req, res, next) {
   try {
     const { id } = req.params;
+    if (!isValidUUID(id)) return fail(res, 'Invalid property ID', 400);
 
     const existing = await pool.query(
       'SELECT id, owner_id, image_url FROM properties WHERE id = $1',

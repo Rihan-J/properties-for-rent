@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const { success, fail } = require('../utils/response');
+const { isValidUUID } = require('../utils/uuid');
 
 // ─── Create Review ──────────────────────────────────────
 async function createReview(req, res, next) {
@@ -8,7 +9,7 @@ async function createReview(req, res, next) {
     const { property_id, rating, comment } = req.body;
 
     // Validate inputs
-    if (!property_id) return fail(res, 'Property ID is required', 400);
+    if (!property_id || !isValidUUID(property_id)) return fail(res, 'Valid property ID is required', 400);
     if (!rating || !Number.isInteger(Number(rating)) || Number(rating) < 1 || Number(rating) > 5) {
       return fail(res, 'Rating must be an integer between 1 and 5', 400);
     }
@@ -57,6 +58,7 @@ async function createReview(req, res, next) {
 async function getPropertyReviews(req, res, next) {
   try {
     const { propertyId } = req.params;
+    if (!isValidUUID(propertyId)) return fail(res, 'Invalid property ID', 400);
 
     const result = await pool.query(
       `SELECT
@@ -86,6 +88,7 @@ async function getPropertyReviews(req, res, next) {
 async function deleteReview(req, res, next) {
   try {
     const { id } = req.params;
+    if (!isValidUUID(id)) return fail(res, 'Invalid review ID', 400);
 
     const existing = await pool.query('SELECT id FROM reviews WHERE id = $1', [id]);
     if (existing.rows.length === 0) return fail(res, 'Review not found', 404);
