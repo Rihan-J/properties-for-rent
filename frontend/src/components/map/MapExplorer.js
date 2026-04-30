@@ -329,7 +329,7 @@ export default function MapExplorer() {
         )}
 
         {/* Recenter button */}
-        {!geo.isDetecting && geoStatus !== 'granted' && (
+        {!geo.isDetecting && (
           <button
             onClick={handleRecenter}
             className="apna-recenter-btn z-[1000]"
