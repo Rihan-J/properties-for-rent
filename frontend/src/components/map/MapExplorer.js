@@ -41,6 +41,7 @@ export default function MapExplorer() {
   const [error, setError] = useState('');
   const [locationName, setLocationName] = useState('');
   const [userLocation, setUserLocation] = useState(null);
+  const [locationModalDismissed, setLocationModalDismissed] = useState(false);
   const abortRef = useRef(null);
   const debounceTimerRef = useRef(null);
   const hasInitialized = useRef(false);
@@ -287,13 +288,43 @@ export default function MapExplorer() {
           </div>
         )}
 
-        {/* Location denied message */}
-        {geo.isDenied && geoStatus === 'denied' && (
-          <div className="apna-geo-denied-banner z-[1000]">
-            <svg className="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-            <span>Location access denied. Showing properties in Bangalore.</span>
+        {/* Location denied Modal */}
+        {geo.isDenied && geoStatus === 'denied' && !locationModalDismissed && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4" style={{ backgroundColor: 'rgba(26,24,21,0.4)', backdropFilter: 'blur(4px)' }}>
+            <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center border border-[#e8e2db]">
+              <div className="w-16 h-16 bg-[#fdf8f4] border border-[#f0ece7] rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-[#b5936b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                Location Access Needed
+              </h3>
+              <p className="text-sm text-black mb-6 leading-relaxed">
+                Please turn on your device's location and grant browser permissions to see the best properties near you.
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={async () => {
+                    const coords = await geo.redetect();
+                    if (coords) {
+                      setLocationModalDismissed(true);
+                      handleRecenter();
+                    }
+                  }}
+                  className="w-full py-3.5 bg-[#1a1815] text-white text-sm font-bold rounded-xl shadow-sm hover:bg-[#2e2a25] hover:shadow-md active:scale-[0.98] transition-all duration-300"
+                >
+                  Enable Location & Retry
+                </button>
+                <button
+                  onClick={() => setLocationModalDismissed(true)}
+                  className="w-full py-3 bg-[#f7f4f0] text-[#1a1815] font-bold text-sm rounded-xl border border-[#e2ddd8] hover:bg-[#f0ece7] active:scale-[0.98] transition-all duration-200"
+                >
+                  Continue without location
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
