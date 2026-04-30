@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import api from '@/lib/api';
-import { getCurrentPosition } from '@/lib/geo';
+import { useGeo } from '@/context/GeoContext';
+import { calculateDistance } from '@/lib/geo';
+import { getLat, getLng } from '@/lib/property';
 import MapSkeleton from '@/components/map/MapSkeleton';
 import SearchBar from '@/components/map/SearchBar';
 import RadiusFilter from '@/components/map/RadiusFilter';
@@ -23,6 +25,8 @@ const DEFAULT_ZOOM = 13;
 const FALLBACK_ZOOM = 13;
 
 export default function MapExplorer() {
+  const geo = useGeo();
+
   // ─── Core State ───────────────────────────────────────
   const [lat, setLat] = useState(DEFAULT_CENTER.lat);
   const [lng, setLng] = useState(DEFAULT_CENTER.lng);
@@ -31,7 +35,7 @@ export default function MapExplorer() {
   const [bookingTypeFilter, setBookingTypeFilter] = useState('all');
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [properties, setProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [fetchingProperties, setFetchingProperties] = useState(false);
   const [geoStatus, setGeoStatus] = useState('detecting'); // detecting | granted | denied | searched
   const [error, setError] = useState('');
@@ -39,6 +43,7 @@ export default function MapExplorer() {
   const [userLocation, setUserLocation] = useState(null);
   const abortRef = useRef(null);
   const debounceTimerRef = useRef(null);
+  const hasInitialized = useRef(false);
 
   // ─── Fetch nearby properties ──────────────────────────
   const fetchNearbyProperties = useCallback(async (newLat, newLng, newRadius, newCategory, newBookingType = 'all') => {
@@ -63,7 +68,13 @@ export default function MapExplorer() {
         signal: controller.signal,
       });
       if (!controller.signal.aborted) {
-        setProperties(res.data.data.properties);
+        const fetchedProps = res.data.data.properties || [];
+        const sortedProps = fetchedProps.sort((a, b) => {
+          const d1 = calculateDistance(newLat, newLng, getLat(a), getLng(a));
+          const d2 = calculateDistance(newLat, newLng, getLat(b), getLng(b));
+          return Number(d1 || Infinity) - Number(d2 || Infinity);
+        });
+        setProperties(sortedProps);
       }
     } catch (err) {
       if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
@@ -76,6 +87,12 @@ export default function MapExplorer() {
     }
   }, []);
 
+  // ─── Handle explore empty state ──────────────────────────
+  const handleExplore = useCallback(() => {
+    setRadius(100); // 100km to cover the entire district/city
+    fetchNearbyProperties(lat, lng, 100, category, bookingTypeFilter);
+  }, [lat, lng, category, bookingTypeFilter, fetchNearbyProperties]);
+
   // ─── Debounced fetch — coalesces rapid filter changes into one API call ──
   const debouncedFetch = useCallback((...args) => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -84,34 +101,46 @@ export default function MapExplorer() {
     }, 350);
   }, [fetchNearbyProperties]);
 
-  // ─── Initial geolocation ─────────────────────────────
+  // ─── React to GeoContext location updates ─────────────
+  // Instead of blocking with await getCurrentPosition(), we start rendering
+  // immediately with the default and react when the geo context resolves.
   useEffect(() => {
-    async function init() {
-      setLoading(true);
-      const pos = await getCurrentPosition();
+    // Skip if geo is still detecting (map already shows default)
+    if (geo.isDetecting) return;
 
-      if (pos) {
-        setLat(pos.lat);
-        setLng(pos.lng);
-        setZoom(DEFAULT_ZOOM);
-        setGeoStatus('granted');
-        setUserLocation([pos.lat, pos.lng]);
-        setLocationName('Your location');
-        await fetchNearbyProperties(pos.lat, pos.lng, radius, category, bookingTypeFilter);
-      } else {
-        // Fallback to Bangalore
-        setLat(DEFAULT_CENTER.lat);
-        setLng(DEFAULT_CENTER.lng);
-        setZoom(FALLBACK_ZOOM);
-        setGeoStatus('denied');
-        setLocationName('Bangalore (default)');
-        await fetchNearbyProperties(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radius, category, bookingTypeFilter);
-      }
+    // Only run the initial sync once
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
 
-      setLoading(false);
+    if (geo.isGranted) {
+      // Geo succeeded — smoothly update to real position
+      setLat(geo.location.lat);
+      setLng(geo.location.lng);
+      setZoom(DEFAULT_ZOOM);
+      setGeoStatus('granted');
+      setUserLocation([geo.location.lat, geo.location.lng]);
+      setLocationName('Your location');
+      fetchNearbyProperties(geo.location.lat, geo.location.lng, radius, category, bookingTypeFilter);
+    } else {
+      // Denied/unavailable — stay on default
+      setLat(DEFAULT_CENTER.lat);
+      setLng(DEFAULT_CENTER.lng);
+      setZoom(FALLBACK_ZOOM);
+      setGeoStatus('denied');
+      setLocationName('Bangalore (default)');
+      fetchNearbyProperties(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radius, category, bookingTypeFilter);
     }
 
-    init();
+    setInitialLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geo.isDetecting, geo.isGranted, geo.location]);
+
+  // ─── Also fire initial property fetch immediately with default ──────
+  // This ensures the sidebar shows results while we wait for geo.
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      fetchNearbyProperties(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radius, category, bookingTypeFilter);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -150,21 +179,23 @@ export default function MapExplorer() {
 
   // ─── Recenter on user location ────────────────────────
   const handleRecenter = useCallback(async () => {
-    const pos = await getCurrentPosition();
-    if (pos) {
-      setLat(pos.lat);
-      setLng(pos.lng);
+    const coords = await geo.redetect();
+    if (coords) {
+      setLat(coords.lat);
+      setLng(coords.lng);
       setZoom(DEFAULT_ZOOM);
       setGeoStatus('granted');
-      setUserLocation([pos.lat, pos.lng]);
+      setUserLocation([coords.lat, coords.lng]);
       setLocationName('Your location');
-      await fetchNearbyProperties(pos.lat, pos.lng, radius, category, bookingTypeFilter);
+      await fetchNearbyProperties(coords.lat, coords.lng, radius, category, bookingTypeFilter);
     }
-  }, [radius, category, bookingTypeFilter, fetchNearbyProperties]);
+  }, [radius, category, bookingTypeFilter, fetchNearbyProperties, geo]);
 
   // ─── Status badge info ────────────────────────────────
   function getStatusBadge() {
-    if (loading) {
+    const isLocating = geo.isDetecting && !hasInitialized.current;
+
+    if (isLocating) {
       return {
         icon: '⟳',
         text: 'Detecting your location…',
@@ -207,6 +238,9 @@ export default function MapExplorer() {
   const badge = getStatusBadge();
   const mapCenter = useMemo(() => [lat, lng], [lat, lng]);
 
+  // Show map immediately — never block with a full-page skeleton
+  const showSidebarSkeleton = initialLoading && geo.isDetecting;
+
   return (
     <div className="flex flex-col lg:flex-row w-full lg:h-[calc(100vh-64px)]">
       {/* ─── Map Section ────────────────────────────────── */}
@@ -216,16 +250,16 @@ export default function MapExplorer() {
           <SearchBar
             onLocationSelect={handleLocationSelect}
             onClear={handleRecenter}
-            disabled={loading}
+            disabled={false}
           />
           <RadiusFilter
             value={radius}
             onChange={handleRadiusChange}
-            disabled={loading}
+            disabled={false}
           />
         </div>
 
-        {/* Map */}
+        {/* Map — always rendered, never blocked */}
         <MapView
           center={mapCenter}
           zoom={zoom}
@@ -233,10 +267,18 @@ export default function MapExplorer() {
           userLocation={userLocation}
         />
 
+        {/* Locating indicator — subtle, near the map */}
+        {geo.isDetecting && (
+          <div className="apna-geo-locating-indicator z-[1000]">
+            <div className="apna-spinner-sm" />
+            <span>Detecting location…</span>
+          </div>
+        )}
+
         {/* Status badge */}
-        {badge && (
+        {badge && !geo.isDetecting && (
           <div className={`apna-status-badge z-[1000] ${badge.className}`}>
-            {(loading || fetchingProperties) ? (
+            {fetchingProperties ? (
               <div className="apna-spinner-sm" />
             ) : (
               <span>{badge.icon}</span>
@@ -245,8 +287,18 @@ export default function MapExplorer() {
           </div>
         )}
 
+        {/* Location denied message */}
+        {geo.isDenied && geoStatus === 'denied' && (
+          <div className="apna-geo-denied-banner z-[1000]">
+            <svg className="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <span>Location access denied. Showing properties in Bangalore.</span>
+          </div>
+        )}
+
         {/* Recenter button */}
-        {!loading && geoStatus !== 'granted' && (
+        {!geo.isDetecting && geoStatus !== 'granted' && (
           <button
             onClick={handleRecenter}
             className="apna-recenter-btn z-[1000]"
@@ -261,20 +313,20 @@ export default function MapExplorer() {
         )}
 
         {/* Empty state overlay */}
-        {!loading && !fetchingProperties && properties.length === 0 && (
+        {!geo.isDetecting && !fetchingProperties && properties.length === 0 && (
           <div className="absolute inset-0 z-[400] flex items-center justify-center pointer-events-none">
             <div className="apna-map-empty pointer-events-auto">
               <div className="apna-map-empty-icon">
-                <span className="text-2xl">📍</span>
+                <span className="text-2xl">👀</span>
               </div>
-              <p className="text-lg font-semibold text-[#1a1815]">No properties found in this area</p>
-              <p className="text-sm text-black mt-1.5">Try a different location or expand your search radius</p>
-              <Link
-                href="/properties"
+              <h2 className="text-lg font-semibold text-[#1a1815]">We couldn't find stays nearby yet</h2>
+              <p className="text-sm text-black mt-1.5">But don't worry — there are great options just a little further away.</p>
+              <button
+                onClick={handleExplore}
                 className="inline-block mt-6 px-6 py-3 bg-[#1a1815] text-white text-sm font-bold rounded-xl hover:bg-[#2e2a25] hover:shadow-md transition-all duration-300 active:scale-[0.98]"
               >
-                Browse All Properties
-              </Link>
+                Explore Nearby Options
+              </button>
             </div>
           </div>
         )}
@@ -298,7 +350,7 @@ export default function MapExplorer() {
               >
                 {geoStatus === 'searched' ? locationName : geoStatus === 'granted' ? 'Nearby Properties' : 'Properties'}
               </h2>
-              {!loading && (
+              {!showSidebarSkeleton && (
                 <p className="text-xs text-black mt-1">
                   Within {radius} km radius
                 </p>
@@ -355,20 +407,20 @@ export default function MapExplorer() {
             </div>
           )}
 
-          {loading ? (
+          {showSidebarSkeleton ? (
             <SidebarSkeleton count={3} />
           ) : properties.length === 0 ? (
             <EmptyState
-              icon="🔍"
-              title="No properties found"
-              subtitle="Try expanding your search radius or searching a different area"
-              actionLabel="Browse All"
-              actionHref="/properties"
+              icon="👀"
+              title="We couldn't find stays nearby yet"
+              subtitle="But don't worry — there are great options just a little further away. Try increasing your search radius."
+              actionLabel="Explore Nearby Options"
+              actionOnClick={handleExplore}
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6 lg:gap-5">
               {properties.map((p) => (
-                <PropertyCard key={p.id} property={p} />
+                <PropertyCard key={p.id} property={p} userLat={lat} userLng={lng} />
               ))}
             </div>
           )}

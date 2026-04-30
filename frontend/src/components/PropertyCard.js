@@ -2,12 +2,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getOptimizedImageUrl } from '@/lib/cloudinary';
-import { getPropertyPricing } from '@/lib/property';
+import { getPropertyPricing, getLat, getLng } from '@/lib/property';
+import { calculateDistance } from '@/lib/geo';
 
-export default function PropertyCard({ property, showDelete, onDelete, isDeleting }) {
+export default function PropertyCard({ property, showDelete, onDelete, isDeleting, userLat, userLng }) {
   const router = useRouter();
   const { user } = useAuth();
   const pricing = getPropertyPricing(property);
+  const distance = calculateDistance(userLat, userLng, getLat(property), getLng(property));
 
   const handleNavigation = (e) => {
     e.preventDefault();
@@ -63,11 +65,15 @@ export default function PropertyCard({ property, showDelete, onDelete, isDeletin
             </span>
           )}
 
-          {property.distance_km !== undefined && (
+          {distance ? (
+            <p className="text-sm text-gray-500 mt-1.5 font-medium">
+              📍 {distance} km away
+            </p>
+          ) : property.distance_km !== undefined ? (
             <p className="text-sm text-black mt-1.5 font-medium">
               Distance: {Number(property.distance_km).toFixed(1)} km
             </p>
-          )}
+          ) : null}
         </div>
       </a>
 

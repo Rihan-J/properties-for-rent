@@ -21,7 +21,6 @@ async function deleteMyAccount(req, res, next) {
       [userId]
     );
 
-
     if (userResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return fail(res, 'User not found', 404);
@@ -29,32 +28,28 @@ async function deleteMyAccount(req, res, next) {
 
     const user = userResult.rows[0];
 
-    // 2. If the user is an owner, clean up their properties
+    // 2. Collect image URLs for async cleanup before the DB cascading delete happens
     if (user.role === 'owner') {
-      // Collect image URLs for async cleanup (don't block the transaction)
       const propsResult = await client.query(
-        'SELECT id, image_url FROM properties WHERE owner_id = $1',
+        'SELECT image_url FROM properties WHERE owner_id = $1',
         [userId]
       );
       imageUrls = propsResult.rows
         .filter(p => p.image_url)
         .map(p => p.image_url);
-
-      // Delete reviews on the user's properties
-      await client.query(
-        'DELETE FROM reviews WHERE property_id IN (SELECT id FROM properties WHERE owner_id = $1)',
-        [userId]
-      );
-
-      // Delete properties
-      await client.query('DELETE FROM properties WHERE owner_id = $1', [userId]);
     }
 
-    // 3. Delete reviews written by this user
-    await client.query('DELETE FROM reviews WHERE user_id = $1', [userId]);
+    // 3. Delete the user (this will CASCADE to properties and reviews)
+    // Extra safety: do not allow admin accounts to be deleted via this route
+    const deleteResult = await client.query(`
+      DELETE FROM users
+      WHERE id = $1 AND role != 'admin'
+    `, [userId]);
 
-    // 4. Delete the user
-    await client.query('DELETE FROM users WHERE id = $1', [userId]);
+    if (deleteResult.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return fail(res, 'Could not delete user. Note: Admin accounts cannot be deleted.', 403);
+    }
 
     await client.query('COMMIT');
 

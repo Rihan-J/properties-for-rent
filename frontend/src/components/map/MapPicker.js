@@ -128,7 +128,7 @@ export default function MapPicker({ value, onChange }) {
         setDetecting(false);
         alert('Could not detect your location. Please click on the map instead.');
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
     );
   }
 

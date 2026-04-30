@@ -1,5 +1,6 @@
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
+import { GeoProvider } from '@/context/GeoContext';
 import Navbar from '@/components/Navbar';
 
 export const metadata = {
@@ -17,10 +18,12 @@ export default function RootLayout({ children }) {
       </head>
       <body className="min-h-screen text-[#1a1815]" style={{ backgroundColor: '#f7f4f0', fontFamily: "'DM Sans', sans-serif" }}>
         <AuthProvider>
-          <Navbar />
-          <main className="pt-16">
-            {children}
-          </main>
+          <GeoProvider>
+            <Navbar />
+            <main className="pt-16">
+              {children}
+            </main>
+          </GeoProvider>
         </AuthProvider>
       </body>
     </html>
