@@ -15,13 +15,13 @@ import { getLat, getLng, getPropertyPricing } from '@/lib/property';
 /**
  * Syncs the map center/zoom when props change.
  */
-function MapUpdater({ center, zoom }) {
+function MapUpdater({ center, zoom, recenterTrigger }) {
   const map = useMap();
   useEffect(() => {
     if (center && center[0] && center[1]) {
       map.flyTo(center, zoom, { duration: 1.2, easeLinearity: 0.25 });
     }
-  }, [center, zoom, map]);
+  }, [center, zoom, map, recenterTrigger]);
   return null;
 }
 
@@ -69,6 +69,7 @@ function MapView({
   zoom = 13,
   properties = [],
   userLocation = null,
+  recenterTrigger = 0,
 }) {
   const router = useRouter();
   const { user } = useAuth();
@@ -172,7 +173,7 @@ function MapView({
         url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
       />
 
-      <MapUpdater center={center} zoom={zoom} />
+      <MapUpdater center={center} zoom={zoom} recenterTrigger={recenterTrigger} />
 
       {/* User location pulsing dot */}
       {userLocation && (

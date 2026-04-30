@@ -42,6 +42,7 @@ export default function MapExplorer() {
   const [locationName, setLocationName] = useState('');
   const [userLocation, setUserLocation] = useState(null);
   const [locationModalDismissed, setLocationModalDismissed] = useState(false);
+  const [recenterTrigger, setRecenterTrigger] = useState(0);
   const abortRef = useRef(null);
   const debounceTimerRef = useRef(null);
   const hasInitialized = useRef(false);
@@ -188,6 +189,7 @@ export default function MapExplorer() {
       setGeoStatus('granted');
       setUserLocation([coords.lat, coords.lng]);
       setLocationName('Your location');
+      setRecenterTrigger(prev => prev + 1);
       await fetchNearbyProperties(coords.lat, coords.lng, radius, category, bookingTypeFilter);
     }
   }, [radius, category, bookingTypeFilter, fetchNearbyProperties, geo]);
@@ -266,6 +268,7 @@ export default function MapExplorer() {
           zoom={zoom}
           properties={properties}
           userLocation={userLocation}
+          recenterTrigger={recenterTrigger}
         />
 
         {/* Locating indicator — subtle, near the map */}
