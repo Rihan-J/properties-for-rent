@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/env');
@@ -9,6 +9,8 @@ const { validateRegister, validateLogin } = require('../validators');
 
 async function register(req, res, next) {
   try {
+    console.log('REGISTER BODY:', JSON.stringify(req.body));
+
     const { valid, errors } = validateRegister(req.body);
     if (!valid) return fail(res, errors.join(', '), 400);
 
@@ -29,10 +31,10 @@ async function register(req, res, next) {
     const userPhone = phone ? phone.trim() : null;
 
     const result = await pool.query(
-      `INSERT INTO users (name, email, password, role, phone, accepted_terms)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, name, email, role, phone, accepted_terms, created_at`,
-      [name.trim(), normalizedEmail, hashedPassword, userRole, userPhone, !!accepted_terms]
+      `INSERT INTO users (name, email, password, role, phone)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, name, email, role, phone, created_at`,
+      [name.trim(), normalizedEmail, hashedPassword, userRole, userPhone]
     );
 
     const user = result.rows[0];
@@ -45,6 +47,7 @@ async function register(req, res, next) {
 
     return success(res, { token, user }, 201);
   } catch (err) {
+    console.error('REGISTER ERROR:', err);
     // Race condition: another request inserted the same email between our check and insert
     if (err.code === '23505') {
       return fail(res, 'Email already registered', 409);

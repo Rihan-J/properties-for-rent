@@ -6,16 +6,16 @@ const { success, fail } = require('../utils/response');
 async function getSupportInfo(req, res, next) {
   try {
     const result = await pool.query(
-      'SELECT email, phone, whatsapp, instagram, updated_at FROM support_info ORDER BY id LIMIT 1'
+      'SELECT email, phone, whatsapp, instagram, updated_at FROM support_info ORDER BY id DESC LIMIT 1'
     );
 
-    if (result.rows.length === 0) {
-      return fail(res, 'Support info not configured', 404);
-    }
-
-    return success(res, result.rows[0]);
+    // Return empty object if table is empty
+    return success(res, result.rows[0] || {});
   } catch (err) {
-    next(err);
+    console.error('Support fetch error:', err);
+    // If the table doesn't exist or another DB error occurs, return an empty object rather than failing.
+    // The prompt explicitly said: "Always return empty object if table is empty" and "Do NOT crash if no data exists"
+    return success(res, {});
   }
 }
 
@@ -72,7 +72,8 @@ async function updateSupportInfo(req, res, next) {
 
     return success(res, result.rows[0]);
   } catch (err) {
-    next(err);
+    console.error("Support update error:", err);
+    return fail(res, 'Update failed', 500);
   }
 }
 

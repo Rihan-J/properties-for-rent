@@ -35,7 +35,7 @@ function AdminSupportEditor() {
     setSuccessMsg('');
 
     try {
-      const res = await api.put('/admin/support', support);
+      const res = await api.put('/support', support);
       setSupport(res.data.data);
       setSuccessMsg('Support info updated successfully!');
       setTimeout(() => setSuccessMsg(''), 3000);
