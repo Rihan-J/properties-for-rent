@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "Properties for Rentz",
+    "slug": "properties-for-rentz",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f7f4f0"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.rihan.propertiesforrentz"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#f7f4f0"
+      },
+      "package": "com.rihan.propertiesforrentz"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to find nearby properties."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you upload property images.",
+          "cameraPermission": "The app accesses your camera to let you take photos of properties."
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "node_modules/@expo-google-fonts/dm-sans/DMSans_400Regular.ttf",
+            "node_modules/@expo-google-fonts/dm-sans/DMSans_500Medium.ttf",
+            "node_modules/@expo-google-fonts/dm-sans/DMSans_600SemiBold.ttf",
+            "node_modules/@expo-google-fonts/dm-sans/DMSans_700Bold.ttf",
+            "node_modules/@expo-google-fonts/cormorant-garamond/CormorantGaramond_600SemiBold.ttf"
+          ]
+        }
+      ]
+    ]
+  }
+}
