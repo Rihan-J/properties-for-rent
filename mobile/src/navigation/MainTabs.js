@@ -6,7 +6,6 @@ import AdminStack from './AdminStack';
 import AccountStack from './AccountStack';
 import { useAuth } from '../context/AuthContext';
 import { colors, fonts } from '../theme';
-import PlaceholderScreen from '../screens/PlaceholderScreen';
 import { Text } from 'react-native';
 
 const Tab = createBottomTabNavigator();

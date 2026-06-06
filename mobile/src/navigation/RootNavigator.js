@@ -8,18 +8,19 @@ import LoadingScreen from '../components/LoadingScreen';
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
 
   if (loading) {
     return <LoadingScreen message="Checking authentication..." />;
   }
 
-  // We use a single stack. If a user is not logged in, they can still access MainTabs (Explore).
-  // But we provide AuthStack for explicit login flows.
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="MainTabs" component={MainTabs} />
-      <Stack.Screen name="Auth" component={AuthStack} />
+      {user ? (
+        <Stack.Screen name="MainTabs" component={MainTabs} />
+      ) : (
+        <Stack.Screen name="Auth" component={AuthStack} />
+      )}
     </Stack.Navigator>
   );
 }
