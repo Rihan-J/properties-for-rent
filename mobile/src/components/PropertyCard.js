@@ -22,8 +22,20 @@ export default function PropertyCard({
 }) {
   const navigation = useNavigation();
   const { user } = useAuth();
+
+  // Guard: if property is null/undefined, render nothing
+  if (!property) return null;
+
   const pricing = getPropertyPricing(property);
   const distance = calculateDistance(userLat, userLng, getLat(property), getLng(property));
+  const imageUrl = property.image_url || '';
+
+  // Safe price formatting
+  const formatAmount = (amount) => {
+    const num = Number(amount);
+    if (Number.isNaN(num)) return '0';
+    return num.toLocaleString('en-IN');
+  };
 
   const handlePress = () => {
     navigation.navigate('PropertyDetail', { propertyId: property.id });
@@ -39,26 +51,32 @@ export default function PropertyCard({
   return (
     <TouchableOpacity
       activeOpacity={0.8}
-      onPress={user ? handlePress : handleLoginPrompt}
+      onPress={handlePress}
       style={[styles.card, isDeleting && styles.cardDeleting, style]}
     >
       <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: getOptimizedImageUrl(property.image_url, { width: 500 }) }}
-          style={styles.image}
-          resizeMode="cover"
-        />
+        {imageUrl ? (
+          <Image
+            source={{ uri: getOptimizedImageUrl(imageUrl, { width: 500 }) }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[styles.image, { backgroundColor: colors.borderLight, justifyContent: 'center', alignItems: 'center' }]}>
+            <Text style={{ fontFamily: fonts.medium, fontSize: 14, color: colors.textMuted }}>📷</Text>
+          </View>
+        )}
         <View style={styles.priceBadge}>
           {pricing.isFlexible ? (
             <Text style={styles.priceText}>
-              {'\u20B9'}{pricing.hourly?.toLocaleString('en-IN')}<Text style={styles.priceUnit}>/hr</Text>
+              {'\u20B9'}{formatAmount(pricing.hourly)}<Text style={styles.priceUnit}>/hr</Text>
               <Text style={styles.priceDot}> • </Text>
-              {'\u20B9'}{pricing.daily?.toLocaleString('en-IN')}<Text style={styles.priceUnit}>/day</Text>
+              {'\u20B9'}{formatAmount(pricing.daily)}<Text style={styles.priceUnit}>/day</Text>
             </Text>
           ) : (
             <Text style={styles.priceText}>
-              {'\u20B9'}{pricing.amount.toLocaleString('en-IN')}
-              <Text style={styles.priceUnit}> {pricing.unitShort}</Text>
+              {'\u20B9'}{formatAmount(pricing.amount)}
+              <Text style={styles.priceUnit}> {pricing.unitShort || '/mo'}</Text>
             </Text>
           )}
         </View>
@@ -71,7 +89,7 @@ export default function PropertyCard({
 
       <View style={styles.content}>
         <Text style={styles.title} numberOfLines={1}>
-          {property.title}
+          {property.title || 'Untitled Property'}
         </Text>
 
         <View style={styles.row}>
@@ -120,7 +138,7 @@ export default function PropertyCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
     overflow: 'hidden',
@@ -141,7 +159,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: 180,
+    height: 224, // tailwind h-56
     backgroundColor: colors.borderLight,
     position: 'relative',
   },
@@ -151,14 +169,14 @@ const styles = StyleSheet.create({
   },
   priceBadge: {
     position: 'absolute',
-    top: spacing.md,
-    right: spacing.md,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: borderRadius.full,
+    top: 16,
+    right: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#e2ddd8',
   },
   priceText: {
     fontFamily: fonts.bold,
@@ -175,12 +193,12 @@ const styles = StyleSheet.create({
   },
   flexibleBadge: {
     position: 'absolute',
-    top: spacing.md,
-    left: spacing.md,
-    backgroundColor: 'rgba(16, 185, 129, 0.95)',
-    paddingHorizontal: 8,
+    top: 16,
+    left: 16,
+    backgroundColor: 'rgba(16, 185, 129, 0.9)',
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: borderRadius.full,
+    borderRadius: 20,
   },
   flexibleText: {
     fontFamily: fonts.bold,
@@ -189,7 +207,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   content: {
-    padding: spacing.md,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
   },
   title: {
     fontFamily: fonts.semiBold,
@@ -229,8 +249,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: colors.borderLight,
-    paddingTop: spacing.sm,
-    marginTop: spacing.xs,
+    paddingTop: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    marginTop: 0,
   },
   statusBadge: {
     backgroundColor: colors.background,

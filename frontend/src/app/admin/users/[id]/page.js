@@ -140,11 +140,10 @@ function OwnerDetailPanel() {
               <h1 className="text-2xl font-semibold text-[#1a1815]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
                 {owner.name}
               </h1>
-              <span className={`inline-block mt-1 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${
-                owner.role === 'admin' ? 'bg-purple-50 text-purple-700 border border-purple-200' :
-                owner.role === 'owner' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                'bg-[#f0ece7] text-black border border-[#e8e2db]'
-              }`}>
+              <span className={`px-2 py-1 rounded-full text-xs font-semibold uppercase tracking-wider
+                ${owner.role === 'admin' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                  'bg-gray-50 text-gray-700 border border-gray-200'}
+              `}>
                 {owner.role}
               </span>
             </div>

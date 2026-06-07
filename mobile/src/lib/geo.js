@@ -32,6 +32,7 @@ export function calculateDistance(lat1, lng1, lat2, lng2) {
  * Build Google Maps navigation URL
  */
 export function getGoogleMapsUrl(lat, lng) {
+  if (lat == null || lng == null) return null;
   return `https://www.google.com/maps?q=${lat},${lng}`;
 }
 
@@ -39,20 +40,16 @@ export function getGoogleMapsUrl(lat, lng) {
  * Build WhatsApp chat link
  */
 export function getWhatsAppUrl(phone, message = '') {
-  const cleanPhone = phone?.replace(/[^0-9]/g, '');
+  if (!phone) return null;
+  const cleanPhone = phone.replace(/[^0-9]/g, '');
+  if (!cleanPhone) return null;
   const encodedMsg = encodeURIComponent(message);
   return `https://wa.me/${cleanPhone}?text=${encodedMsg}`;
 }
 
-/**
- * Open a URL using the device's default handler (browser, maps, whatsapp, etc.)
- */
 export async function openUrl(url) {
   try {
-    const supported = await Linking.canOpenURL(url);
-    if (supported) {
-      await Linking.openURL(url);
-    }
+    await Linking.openURL(url);
   } catch (err) {
     console.warn('Failed to open URL:', url, err);
   }
@@ -62,28 +59,32 @@ export async function openUrl(url) {
  * Open directions in Google Maps / device maps
  */
 export function openDirections(lat, lng) {
-  openUrl(getGoogleMapsUrl(lat, lng));
+  const url = getGoogleMapsUrl(lat, lng);
+  if (url) openUrl(url);
 }
 
 /**
  * Open WhatsApp chat
  */
 export function openWhatsApp(phone, message = '') {
-  openUrl(getWhatsAppUrl(phone, message));
+  const url = getWhatsAppUrl(phone, message);
+  if (url) openUrl(url);
 }
 
 /**
  * Make a phone call
  */
 export function openPhone(phone) {
-  const cleanPhone = phone?.replace(/[^0-9+]/g, '');
-  openUrl(`tel:${cleanPhone}`);
+  if (!phone) return;
+  const cleanPhone = phone.replace(/[^0-9+]/g, '');
+  if (cleanPhone) openUrl(`tel:${cleanPhone}`);
 }
 
 /**
  * Open email client
  */
 export function openEmail(email) {
+  if (!email) return;
   openUrl(`mailto:${email}`);
 }
 
@@ -91,6 +92,7 @@ export function openEmail(email) {
  * Open Instagram profile
  */
 export function openInstagram(handle) {
-  const cleanHandle = handle?.replace(/^@/, '');
-  openUrl(`https://instagram.com/${cleanHandle}`);
+  if (!handle) return;
+  const cleanHandle = handle.replace(/^@/, '');
+  if (cleanHandle) openUrl(`https://instagram.com/${cleanHandle}`);
 }

@@ -40,6 +40,20 @@ export default function AddPropertyScreen() {
       return;
     }
 
+    // Validate coordinates
+    const lat = Number(location.lat);
+    const lng = Number(location.lng);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+      setErrorMsg('Invalid location selected. Please pick a location on the map.');
+      return;
+    }
+
+    const priceNum = Number(price);
+    if (Number.isNaN(priceNum) || priceNum <= 0) {
+      setErrorMsg('Please enter a valid price');
+      return;
+    }
+
     setLoading(true);
     try {
       // 1. Upload Image
@@ -49,22 +63,22 @@ export default function AddPropertyScreen() {
       const payload = {
         title,
         description,
-        price: Number(price),
+        price: priceNum,
         category,
         image_url: imageUrl,
-        lat: location.lat,
-        lng: location.lng,
+        latitude: lat,
+        longitude: lng,
       };
 
       if (category === 'lodge') {
         payload.booking_type = bookingType;
-        if (bookingType === 'hourly' || bookingType === 'both') payload.price_per_hour = Number(pricePerHour);
-        if (bookingType === 'daily' || bookingType === 'both') payload.price_per_day = Number(pricePerDay);
+        if (bookingType === 'hourly' || bookingType === 'both') payload.price_per_hour = Number(pricePerHour) || 0;
+        if (bookingType === 'daily' || bookingType === 'both') payload.price_per_day = Number(pricePerDay) || 0;
       }
 
       if (category === 'site') {
         payload.dimensions = dimensions;
-        payload.area_sqft = Number(areaSqft);
+        payload.area_sqft = Number(areaSqft) || 0;
       }
 
       // 3. Submit Property
@@ -72,7 +86,7 @@ export default function AddPropertyScreen() {
       
       navigation.goBack();
     } catch (err) {
-      setErrorMsg(err.message || 'Failed to add property');
+      setErrorMsg(err?.response?.data?.error || err?.message || 'Failed to add property');
     } finally {
       setLoading(false);
     }

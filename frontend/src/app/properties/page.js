@@ -88,7 +88,7 @@ function PropertiesPage() {
   const canDelete = (property) => {
     if (!user) return false;
     if (user.role === 'admin') return true;
-    if (user.role === 'owner' && property.owner_id === user.id) return true;
+    if (user && property.owner_id === user.id) return true;
     return false;
   };
 
@@ -97,13 +97,13 @@ function PropertiesPage() {
       {/* Header */}
       <div className="mb-8">
         <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-black mb-2">
-          {user?.role === 'owner' ? 'Dashboard' : 'Browse'}
+          {!!user ? 'Dashboard' : 'Browse'}
         </p>
         <h1 className="text-4xl lg:text-5xl font-semibold text-[#1a1815]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-          {user?.role === 'owner' ? 'My Listings' : 'All Properties'}
+          {!!user ? 'My Listings' : 'All Properties'}
         </h1>
         <p className="text-base text-black mt-3 max-w-lg leading-relaxed">
-          {user?.role === 'owner' 
+          {!!user 
             ? 'Manage your property listings and keep track of your portfolio.'
             : 'Browse our collection of curated stays, handpicked for comfort and location.'}
         </p>

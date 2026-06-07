@@ -16,11 +16,12 @@ export default function App() {
   useEffect(() => {
     async function loadFonts() {
       await Font.loadAsync({
-        'DMSans-Regular': require('@expo-google-fonts/dm-sans/DMSans_400Regular.ttf'),
-        'DMSans-Medium': require('@expo-google-fonts/dm-sans/DMSans_500Medium.ttf'),
-        'DMSans-SemiBold': require('@expo-google-fonts/dm-sans/DMSans_600SemiBold.ttf'),
-        'DMSans-Bold': require('@expo-google-fonts/dm-sans/DMSans_700Bold.ttf'),
-        'CormorantGaramond-SemiBold': require('@expo-google-fonts/cormorant-garamond/CormorantGaramond_600SemiBold.ttf'),
+        'Inter-Regular': require('@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf'),
+        'Inter-Medium': require('@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf'),
+        'Inter-SemiBold': require('@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf'),
+        'Inter-Bold': require('@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf'),
+        'Inter-ExtraBold': require('@expo-google-fonts/inter/800ExtraBold/Inter_800ExtraBold.ttf'),
+        'CormorantGaramond-SemiBold': require('@expo-google-fonts/cormorant-garamond/600SemiBold/CormorantGaramond_600SemiBold.ttf'),
       }).catch((e) => console.warn('Font load error, using fallback:', e));
       setFontsLoaded(true);
     }

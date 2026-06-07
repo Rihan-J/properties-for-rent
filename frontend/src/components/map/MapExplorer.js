@@ -409,11 +409,10 @@ export default function MapExplorer() {
               <button
                 key={cat.id}
                 onClick={() => handleCategoryChange(cat.id)}
-                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 border ${
-                  category === cat.id
+                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 border ${category === cat.id
                     ? 'bg-[#1a1815] text-white border-[#1a1815]'
                     : 'bg-[#f7f4f0] text-black border-[#e8e2db] hover:border-[#b5936b] hover:bg-white'
-                }`}
+                  }`}
               >
                 {cat.label}
               </button>
@@ -429,11 +428,10 @@ export default function MapExplorer() {
                 <button
                   key={opt.id}
                   onClick={() => handleBookingTypeChange(opt.id)}
-                  className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 border ${
-                    bookingTypeFilter === opt.id
+                  className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 border ${bookingTypeFilter === opt.id
                       ? 'bg-[#1a1815] text-white border-[#1a1815]'
                       : 'bg-[#f7f4f0] text-black border-[#e8e2db] hover:border-[#b5936b] hover:bg-white'
-                  }`}
+                    }`}
                 >
                   {opt.label}
                 </button>

@@ -2,8 +2,8 @@
  * AccountScreen — user profile, support info, privacy policy, logout, delete account.
  */
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
 import api from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
@@ -12,6 +12,7 @@ import SupportInfoCard from '../../components/SupportInfoCard';
 import Toast from '../../components/Toast';
 
 export default function AccountScreen() {
+  const navigation = useNavigation();
   const { user, logout, isAdmin } = useAuth();
   const [support, setSupport] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
@@ -32,7 +33,7 @@ export default function AccountScreen() {
   );
 
   const handlePrivacyPolicy = async () => {
-    await WebBrowser.openBrowserAsync('https://properties-for-rentz.vercel.app/privacy');
+    await WebBrowser.openBrowserAsync('https://properties-for-rent.vercel.app/privacy');
   };
 
   const handleLogout = () => {
@@ -61,18 +62,40 @@ export default function AccountScreen() {
     );
   };
 
-  if (!user) return null; // RootNavigator handles auth gating mostly
+  if (!user) {
+    return (
+      <View style={styles.guestContainer}>
+        <View style={styles.guestLogoBox}>
+          <Image source={require('../../../assets/app-logo.jpeg')} style={{ width: 80, height: 80, borderRadius: 20 }} resizeMode="contain" />
+        </View>
+        <Text style={styles.guestTitle}>Welcome to Properties for Rentz</Text>
+        <Text style={styles.guestSubtitle}>Sign in to save favorites, list properties, and write reviews</Text>
+        <TouchableOpacity 
+          style={styles.guestLoginBtn} 
+          onPress={() => navigation.navigate('Auth', { screen: 'Login' })}
+        >
+          <Text style={styles.guestLoginText}>Sign In</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.guestRegisterBtn} 
+          onPress={() => navigation.navigate('Auth', { screen: 'Register' })}
+        >
+          <Text style={styles.guestRegisterText}>Create Account</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user.name?.charAt(0).toUpperCase()}</Text>
+          <Text style={styles.avatarText}>{(user.name || 'U').charAt(0).toUpperCase()}</Text>
         </View>
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.email}>{user.email}</Text>
+        <Text style={styles.name}>{user.name || 'User'}</Text>
+        <Text style={styles.email}>{user.email || ''}</Text>
         <View style={styles.roleBadge}>
-          <Text style={styles.roleText}>{user.role}</Text>
+          <Text style={styles.roleText}>{user.role || 'user'}</Text>
         </View>
       </View>
 
@@ -85,10 +108,6 @@ export default function AccountScreen() {
         <Text style={styles.sectionTitle}>About</Text>
         <TouchableOpacity style={styles.listItem} onPress={handlePrivacyPolicy}>
           <Text style={styles.listText}>Privacy Policy</Text>
-          <Text style={styles.listIcon}>↗</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.listItem}>
-          <Text style={styles.listText}>Terms of Service</Text>
           <Text style={styles.listIcon}>↗</Text>
         </TouchableOpacity>
         <View style={styles.listItem}>
@@ -134,4 +153,14 @@ const styles = StyleSheet.create({
   logoutText: { fontFamily: fonts.bold, fontSize: fontSizes.base, color: colors.text },
   deleteBtn: { padding: spacing.md, alignItems: 'center' },
   deleteText: { fontFamily: fonts.bold, fontSize: fontSizes.sm, color: colors.errorText },
+
+  // Guest screen styles
+  guestContainer: { flex: 1, backgroundColor: '#f7f4f0', justifyContent: 'center', alignItems: 'center', padding: 32 },
+  guestLogoBox: { width: 80, height: 80, backgroundColor: '#fff', borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginBottom: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  guestTitle: { fontFamily: fonts.serif, fontSize: 28, color: '#1a1815', textAlign: 'center', marginBottom: 8 },
+  guestSubtitle: { fontFamily: fonts.regular, fontSize: 15, color: '#6b6560', textAlign: 'center', marginBottom: 32, lineHeight: 22 },
+  guestLoginBtn: { backgroundColor: '#1a1815', paddingVertical: 16, paddingHorizontal: 48, borderRadius: 12, width: '100%', alignItems: 'center', marginBottom: 12 },
+  guestLoginText: { fontFamily: fonts.bold, fontSize: 15, color: '#fff' },
+  guestRegisterBtn: { backgroundColor: '#fff', paddingVertical: 16, paddingHorizontal: 48, borderRadius: 12, width: '100%', alignItems: 'center', borderWidth: 1, borderColor: '#e2ddd8' },
+  guestRegisterText: { fontFamily: fonts.bold, fontSize: 15, color: '#1a1815' },
 });

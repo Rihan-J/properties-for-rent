@@ -17,7 +17,7 @@ router.get('/nearby', cacheResponse(90, { keyBuilder: buildNearbyCacheKey }), ge
 router.get('/:id', getPropertyById);
 
 // Protected routes — owner or admin only
-router.post('/', protect, authorize('owner', 'admin'), createProperty);
-router.delete('/:id', protect, authorize('owner', 'admin'), deleteProperty);
+router.post('/', protect, authorize('owner', 'user', 'admin'), createProperty);
+router.delete('/:id', protect, authorize('owner', 'user', 'admin'), deleteProperty);
 
 module.exports = router;

@@ -21,8 +21,9 @@ export default function DashboardScreen() {
 
   const fetchProperties = async () => {
     try {
-      const res = await api.get('/properties/owner');
-      setProperties(res.data.data.properties || []);
+      const res = await api.get('/properties');
+      const propsList = res?.data?.data?.properties;
+      setProperties(Array.isArray(propsList) ? propsList.filter(p => p != null) : []);
     } catch (err) {
       setErrorMsg('Failed to load properties');
     } finally {
@@ -62,7 +63,7 @@ export default function DashboardScreen() {
     );
   };
 
-  if (loading) return <LoadingScreen />;
+  if (loading) return <LoadingScreen type="list" />;
 
   return (
     <View style={styles.container}>
@@ -72,17 +73,20 @@ export default function DashboardScreen() {
 
       <FlatList
         data={properties}
-        keyExtractor={item => item.id}
+        keyExtractor={(item, index) => item?.id ?? `dash-${index}`}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <PropertyCard
-            property={item}
-            showDelete
-            onDelete={handleDelete}
-            isDeleting={deletingId === item.id}
-            style={styles.card}
-          />
-        )}
+        renderItem={({ item }) => {
+          if (!item) return null;
+          return (
+            <PropertyCard
+              property={item}
+              showDelete
+              onDelete={handleDelete}
+              isDeleting={deletingId === item.id}
+              style={styles.card}
+            />
+          );
+        }}
         ListEmptyComponent={
           <EmptyState
             title="No properties listed yet"

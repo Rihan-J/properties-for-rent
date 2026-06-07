@@ -13,7 +13,9 @@ import { STORAGE_KEYS, API_TIMEOUT } from './constants';
 
 const API_URL =
   process.env.EXPO_PUBLIC_API_URL ||
-  'https://properties-for-rentz.onrender.com/api';
+  'https://properties-backend-kir0.onrender.com/api';
+
+
 
 const api = axios.create({
   baseURL: API_URL,
@@ -70,6 +72,7 @@ function shouldRetry(error) {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    
     // Auto-logout on 401
     if (error.response?.status === 401) {
       clearAuthState.current?.();

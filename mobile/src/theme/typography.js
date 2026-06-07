@@ -1,12 +1,13 @@
 /**
- * Typography — matches the web app's DM Sans + Cormorant Garamond.
+ * Typography — matches the web app's Inter font.
  * Fonts loaded via expo-font in App.js.
  */
 export const fonts = {
-  regular: 'DMSans-Regular',
-  medium: 'DMSans-Medium',
-  semiBold: 'DMSans-SemiBold',
-  bold: 'DMSans-Bold',
+  regular: 'Inter-Regular',
+  medium: 'Inter-Medium',
+  semiBold: 'Inter-SemiBold',
+  bold: 'Inter-Bold',
+  extraBold: 'Inter-ExtraBold',
   serif: 'CormorantGaramond-SemiBold',
 };
 

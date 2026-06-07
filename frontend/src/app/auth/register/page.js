@@ -15,7 +15,6 @@ function RegisterContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
-  const [role, setRole] = useState('user');
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -39,7 +38,7 @@ function RegisterContent() {
     }
 
     try {
-      await register(name, email, password, role, phone, accepted);
+      await register(name, email, password, 'user', phone, accepted);
       const redirectUrl = searchParams.get('redirect') || '/';
       router.push(redirectUrl);
     } catch (err) {
@@ -121,35 +120,7 @@ function RegisterContent() {
             />
           </div>
 
-          <div>
-            <label className="block text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-3">I want to</label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setRole('user')}
-                className={`px-4 py-4 rounded-xl border text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] ${
-                  role === 'user'
-                    ? 'border-[#b5936b] bg-[#fdf8f4] text-[#1a1815] shadow-sm'
-                    : 'border-[#e2ddd8] bg-[#faf9f7] text-black hover:border-[#b5936b]/50 hover:bg-white'
-                }`}
-              >
-                <span className="block text-xl mb-1">🔍</span>
-                Find a Stay
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('owner')}
-                className={`px-4 py-4 rounded-xl border text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] ${
-                  role === 'owner'
-                    ? 'border-[#b5936b] bg-[#fdf8f4] text-[#1a1815] shadow-sm'
-                    : 'border-[#e2ddd8] bg-[#faf9f7] text-black hover:border-[#b5936b]/50 hover:bg-white'
-                }`}
-              >
-                <span className="block text-xl mb-1">🏠</span>
-                List Property
-              </button>
-            </div>
-          </div>
+
 
           <label className="flex items-start gap-3 mt-1 cursor-pointer group" htmlFor="accept-terms">
             <input

@@ -64,7 +64,7 @@ export function AuthProvider({ children }) {
     clearAuthState.current = logout;
   }, [logout]);
 
-  const isOwner = user?.role === 'owner' || user?.role === 'admin';
+  const isOwner = !!user; // Everyone can now add properties
   const isAdmin = user?.role === 'admin';
 
   return (

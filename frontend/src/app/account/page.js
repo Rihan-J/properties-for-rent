@@ -232,8 +232,7 @@ function AccountSettingsContent() {
             </div>
 
             <p className="text-sm text-[#3d3a36] mb-4 leading-relaxed">
-              Deleting your account will permanently remove all your data, including
-              {role === 'owner' ? ' your property listings,' : ''} reviews, and personal information.
+              This action cannot be undone. This will permanently delete your account, reviews, and personal information.
               This action <strong>cannot be undone</strong>.
             </p>
 

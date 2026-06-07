@@ -9,7 +9,6 @@ const { validateRegister, validateLogin } = require('../validators');
 
 async function register(req, res, next) {
   try {
-    console.log('REGISTER BODY:', JSON.stringify(req.body));
 
     const { valid, errors } = validateRegister(req.body);
     if (!valid) return fail(res, errors.join(', '), 400);
@@ -27,7 +26,7 @@ async function register(req, res, next) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const userRole = role === 'owner' ? 'owner' : 'user'; // Never allow 'admin' via API
+    const userRole = 'user'; // All registrants are assigned the 'user' role
     const userPhone = phone ? phone.trim() : null;
 
     const result = await pool.query(
@@ -47,7 +46,6 @@ async function register(req, res, next) {
 
     return success(res, { token, user }, 201);
   } catch (err) {
-    console.error('REGISTER ERROR:', err);
     // Race condition: another request inserted the same email between our check and insert
     if (err.code === '23505') {
       return fail(res, 'Email already registered', 409);

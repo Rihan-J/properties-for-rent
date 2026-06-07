@@ -205,7 +205,7 @@ async function getNearbyProperties(req, res, next) {
 
     const lat = parseFloat(req.query.lat);
     const lng = parseFloat(req.query.lng);
-    const radiusKm = parseFloat(req.query.radius) || 5;
+    const radiusKm = parseFloat(req.query.radius) || 20;
     const category = req.query.category || null;
     const bookingType = req.query.booking_type || null;
     const VALID_BOOKING_TYPES = ['hourly', 'daily'];

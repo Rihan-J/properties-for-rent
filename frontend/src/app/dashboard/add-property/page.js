@@ -594,7 +594,7 @@ function AddPropertyForm() {
 
 export default function AddPropertyPage() {
   return (
-    <ProtectedRoute allowedRoles={['owner', 'admin']}>
+    <ProtectedRoute allowedRoles={['user', 'admin']}>
       <AddPropertyForm />
     </ProtectedRoute>
   );

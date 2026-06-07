@@ -26,9 +26,7 @@ function validateRegister(body) {
   if (password && password.length > 128) {
     errors.push('Password must be under 128 characters');
   }
-  if (role && !['user', 'owner'].includes(role)) {
-    errors.push('Role must be either "user" or "owner"');
-  }
+  // Role is no longer validated here because it is strictly set by the backend
   if (!phone || !/^\+?[0-9]{10,15}$/.test(phone)) {
     errors.push('Phone is required and must be a valid 10-15 digit number');
   }

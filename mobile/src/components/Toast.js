@@ -8,7 +8,7 @@ import { colors, fonts, fontSizes, borderRadius, spacing } from '../theme';
 
 export default function Toast({ message, type = 'info', visible, onHide, duration = 3000 }) {
   const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(-20)).current;
+  const scale = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
     if (visible) {
@@ -18,57 +18,63 @@ export default function Toast({ message, type = 'info', visible, onHide, duratio
           duration: 250,
           useNativeDriver: true,
         }),
-        Animated.timing(translateY, {
-          toValue: 0,
-          duration: 250,
+        Animated.spring(scale, {
+          toValue: 1,
+          friction: 6,
+          tension: 40,
           useNativeDriver: true,
         }),
       ]).start();
 
-      const timer = setTimeout(() => {
-        Animated.parallel([
-          Animated.timing(opacity, {
-            toValue: 0,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-          Animated.timing(translateY, {
-            toValue: -20,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-        ]).start(() => onHide?.());
-      }, duration);
+      if (duration > 0) {
+        const timer = setTimeout(() => {
+          Animated.parallel([
+            Animated.timing(opacity, {
+              toValue: 0,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            Animated.timing(scale, {
+              toValue: 0.8,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+          ]).start(() => onHide?.());
+        }, duration);
 
-      return () => clearTimeout(timer);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [visible, duration, onHide, opacity, translateY]);
+  }, [visible, duration, onHide, opacity, scale]);
 
   if (!visible) return null;
 
   const bgColor =
     type === 'success' ? colors.successBg :
     type === 'error'   ? colors.errorBg :
-    colors.surface;
+    'rgba(30, 30, 30, 0.85)'; // Darker pill for default info toast
 
   const borderColor =
     type === 'success' ? colors.successBorder :
     type === 'error'   ? colors.errorBorder :
-    colors.border;
+    'transparent';
 
   const textColor =
     type === 'success' ? colors.success :
     type === 'error'   ? colors.errorText :
-    colors.text;
+    '#ffffff';
 
   return (
     <Animated.View
       style={[
         styles.container,
-        { backgroundColor: bgColor, borderColor, opacity, transform: [{ translateY }] },
+        { backgroundColor: bgColor, borderColor, opacity, transform: [{ scale }] },
       ]}
     >
-      <Text style={[styles.text, { color: textColor }]}>{message}</Text>
+      <Text style={[styles.text, { color: textColor }]}>
+        {type === 'info' && '✨ '}
+        {message}
+      </Text>
     </Animated.View>
   );
 }
@@ -76,23 +82,23 @@ export default function Toast({ message, type = 'info', visible, onHide, duratio
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 60,
-    left: spacing.base,
-    right: spacing.base,
-    paddingHorizontal: spacing.base,
+    top: '45%',
+    alignSelf: 'center',
+    paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
+    borderRadius: 30, // pill shape
     borderWidth: 1,
     zIndex: 9999,
     elevation: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
   },
   text: {
     fontSize: fontSizes.md,
-    fontFamily: fonts.semiBold,
+    fontFamily: fonts.bold,
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
 });

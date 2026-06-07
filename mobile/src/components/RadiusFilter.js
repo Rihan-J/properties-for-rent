@@ -69,9 +69,8 @@ export default function RadiusFilter({ value, onChange, disabled }) {
 
 const styles = StyleSheet.create({
   button: {
-    position: 'absolute',
-    top: 110, // Below SearchBar
-    right: spacing.base,
+    alignSelf: 'flex-start',
+    marginBottom: spacing.md,
     backgroundColor: colors.surface,
     flexDirection: 'row',
     alignItems: 'center',

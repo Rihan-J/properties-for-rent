@@ -150,8 +150,7 @@ async function getAdminStats(req, res, next) {
     // Single query for user counts by role
     const usersResult = await pool.query(`
       SELECT
-        COUNT(*) FILTER (WHERE role = 'user') AS total_users,
-        COUNT(*) FILTER (WHERE role = 'owner') AS total_owners
+        COUNT(*) FILTER (WHERE role = 'user') AS total_users
       FROM users
     `);
 
@@ -181,7 +180,6 @@ async function getAdminStats(req, res, next) {
 
     return success(res, {
       totalUsers: parseInt(users.total_users, 10),
-      totalOwners: parseInt(users.total_owners, 10),
       totalProperties: parseInt(props.total, 10),
       categories: categoryResult.rows,
     });

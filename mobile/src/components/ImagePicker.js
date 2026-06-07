@@ -23,8 +23,7 @@ export default function ImagePicker({ imageUri, onImageSelect, onError }) {
     try {
       const result = await ExpoImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [4, 3],
+        allowsEditing: false,
         quality: 0.8, // Slightly compress to save bandwidth
       });
 

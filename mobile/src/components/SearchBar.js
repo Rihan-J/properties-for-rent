@@ -1,122 +1,183 @@
 /**
- * SearchBar — Location search component for map.
- * Adapted from frontend/src/components/map/SearchBar.js
+ * SearchBar — Location search with Nominatim geocoding.
+ * Exactly mirrors frontend/src/components/map/SearchBar.js
+ * Debounced input, dropdown results, keyboard submit.
  */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   TextInput,
   TouchableOpacity,
   Text,
-  FlatList,
+  ScrollView,
   StyleSheet,
   ActivityIndicator,
   Keyboard,
 } from 'react-native';
 import { colors, fonts, fontSizes, spacing, borderRadius } from '../theme';
 
-export default function SearchBar({ onLocationSelect, onClear, disabled }) {
+export default function SearchBar({ onLocationSelect, onClear, disabled = false }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
   const debounceRef = useRef(null);
+  const abortRef = useRef(null);
 
-  useEffect(() => {
-    if (!query.trim() || query.length < 3) {
+  // Debounced geocoding search with AbortController (exact web match)
+  const searchLocation = useCallback(async (searchQuery) => {
+    // Cancel any in-flight request
+    if (abortRef.current) abortRef.current.abort();
+
+    if (!searchQuery || searchQuery.trim().length < 3) {
       setResults([]);
-      setShowResults(false);
+      setIsOpen(false);
       return;
     }
 
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const controller = new AbortController();
+    abortRef.current = controller;
 
-    debounceRef.current = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-            query
-          )}&limit=5&countrycodes=in` // Constrained to India, similar to web
-        );
-        const data = await res.json();
-        setResults(data);
-        setShowResults(true);
-      } catch (err) {
-        console.warn('Search error:', err);
-      } finally {
-        setIsSearching(false);
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=5&countrycodes=in&addressdetails=1`,
+        {
+          headers: {
+            'Accept-Language': 'en',
+            'User-Agent': 'PropertiesForRentMobileApp/1.0',
+          },
+          signal: controller.signal,
+        }
+      );
+      
+      // Read as text first to handle HTML error responses
+      const text = await response.text();
+      if (text.startsWith('<') || text.includes('Access denied')) {
+        console.error('[SearchBar] Nominatim blocked request');
+        return;
       }
-    }, 500);
-
-    return () => clearTimeout(debounceRef.current);
-  }, [query]);
-
-  const handleSelect = (item) => {
-    const lat = parseFloat(item.lat);
-    const lng = parseFloat(item.lon);
-    const name = item.display_name.split(',')[0];
-    
-    setQuery(name);
-    setShowResults(false);
-    Keyboard.dismiss();
-    
-    if (onLocationSelect) {
-      onLocationSelect({ lat, lng, name });
+      
+      const data = JSON.parse(text);
+      if (!controller.signal.aborted) {
+        setResults(data);
+        setIsOpen(data.length > 0);
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        setResults([]);
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
 
-  const handleClear = () => {
+  // Debounce input — 500ms (exact web match)
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      searchLocation(query);
+    }, 500);
+    return () => clearTimeout(debounceRef.current);
+  }, [query, searchLocation]);
+
+  // Exact web handleSelect
+  function handleSelect(result) {
+    const lat = parseFloat(result.lat);
+    const lng = parseFloat(result.lon);
+    const displayName = result.display_name.split(',').slice(0, 3).join(', ');
+    setQuery(displayName);
+    setIsOpen(false);
+    setResults([]);
+    Keyboard.dismiss();
+    onLocationSelect({ lat, lng, name: displayName });
+  }
+
+  // Exact web handleClear
+  function handleClear() {
     setQuery('');
     setResults([]);
-    setShowResults(false);
+    setIsOpen(false);
     Keyboard.dismiss();
-    if (onClear) onClear();
-  };
+    onClear?.();
+  }
+
+  // Exact web formatResult
+  function formatResult(result) {
+    const parts = result.display_name.split(', ');
+    const primary = parts.slice(0, 2).join(', ');
+    const secondary = parts.slice(2, 4).join(', ');
+    return { primary, secondary };
+  }
+
+  // Submit on Enter key — selects first result
+  function handleSubmit() {
+    if (results && results.length > 0) {
+      handleSelect(results[0]);
+    }
+  }
 
   return (
     <View style={styles.container}>
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, isOpen && styles.inputContainerActive]}>
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.input}
-          placeholder="Search locations..."
+          placeholder="Search city, area, or location..."
           placeholderTextColor={colors.textPlaceholder}
           value={query}
           onChangeText={setQuery}
           editable={!disabled}
-          onFocus={() => {
-            if (results.length > 0) setShowResults(true);
-          }}
+          autoCorrect={false}
+          autoCapitalize="words"
+          returnKeyType="search"
+          onSubmitEditing={handleSubmit}
+          onFocus={() => results.length > 0 && setIsOpen(true)}
         />
-        {isSearching ? (
+        {/* Loading spinner (exact web match) */}
+        {loading && (
           <ActivityIndicator size="small" color={colors.primary} style={styles.rightIcon} />
-        ) : query ? (
-          <TouchableOpacity onPress={handleClear} style={styles.rightIcon}>
-            <Text style={styles.clearIcon}>✖</Text>
+        )}
+        {/* Clear button (exact web match) */}
+        {query && !loading && (
+          <TouchableOpacity onPress={handleClear} style={styles.rightIcon} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
+            <Text style={styles.clearIcon}>❌</Text>
           </TouchableOpacity>
-        ) : null}
+        )}
       </View>
 
-      {showResults && results.length > 0 && (
+      {/* Results dropdown (exact web match) */}
+      {isOpen && results.length > 0 && (
         <View style={styles.resultsContainer}>
-          <FlatList
-            data={results}
-            keyExtractor={(item) => item.place_id.toString()}
-            keyboardShouldPersistTaps="handled"
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.resultItem}
-                onPress={() => handleSelect(item)}
-              >
-                <Text style={styles.resultIcon}>📍</Text>
-                <Text style={styles.resultText} numberOfLines={2}>
-                  {item.display_name}
-                </Text>
-              </TouchableOpacity>
-            )}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-          />
+          <ScrollView keyboardShouldPersistTaps="handled">
+            {results.map((item, index) => {
+              const { primary, secondary } = formatResult(item);
+              return (
+                <View key={item.place_id.toString()}>
+                  <TouchableOpacity
+                    style={styles.resultItem}
+                    onPress={() => handleSelect(item)}
+                  >
+                    <Text style={styles.resultIcon}>📍</Text>
+                    <View style={styles.resultTextContainer}>
+                      <Text style={styles.resultPrimaryText} numberOfLines={1}>
+                        {primary}
+                      </Text>
+                      {secondary && (
+                        <Text style={styles.resultSecondaryText} numberOfLines={1}>
+                          {secondary}
+                        </Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                  {index < results.length - 1 && <View style={styles.separator} />}
+                </View>
+              );
+            })}
+          </ScrollView>
         </View>
       )}
     </View>
@@ -125,26 +186,26 @@ export default function SearchBar({ onLocationSelect, onClear, disabled }) {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    top: 50, // Below status bar
-    left: spacing.base,
-    right: spacing.base,
+    marginBottom: spacing.md,
     zIndex: 100,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    height: 50,
+    borderColor: colors.borderLight,
+    paddingHorizontal: 14,
+    height: 48,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  inputContainerActive: {
+    borderColor: colors.accent,
   },
   searchIcon: {
     fontSize: 16,
@@ -154,7 +215,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: '100%',
     fontFamily: fonts.medium,
-    fontSize: fontSizes.base,
+    fontSize: 15,
     color: colors.text,
   },
   rightIcon: {
@@ -165,35 +226,47 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   resultsContainer: {
-    marginTop: spacing.xs,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: colors.border,
-    maxHeight: 250,
+    borderColor: colors.borderLight,
+    marginTop: 8,
+    maxHeight: 280,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 32,
+    elevation: 8,
+    overflow: 'hidden',
   },
   resultItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
   },
   resultIcon: {
     fontSize: 16,
-    marginRight: spacing.sm,
+    marginRight: spacing.md,
   },
-  resultText: {
+  resultTextContainer: {
     flex: 1,
-    fontFamily: fonts.medium,
-    fontSize: fontSizes.sm,
+    justifyContent: 'center',
+  },
+  resultPrimaryText: {
+    fontFamily: fonts.semiBold,
+    fontSize: 14,
     color: colors.text,
+    marginBottom: 2,
+  },
+  resultSecondaryText: {
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    color: colors.textSecondary,
   },
   separator: {
     height: 1,
     backgroundColor: colors.borderLight,
+    marginLeft: 40,
   },
 });

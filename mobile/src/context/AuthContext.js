@@ -94,7 +94,7 @@ export function AuthProvider({ children }) {
     []
   );
 
-  const isOwner = user?.role === 'owner' || user?.role === 'admin';
+  const isOwner = !!user; // Everyone can add properties now
   const isAdmin = user?.role === 'admin';
 
   return (

@@ -44,6 +44,6 @@ export const STORAGE_KEYS = {
 };
 
 export const DEBOUNCE_MS = 350;
-export const API_TIMEOUT = 15000;
+export const API_TIMEOUT = 60000;
 export const ITEMS_PER_PAGE = 20;
 export const NEARBY_LIMIT = 50;

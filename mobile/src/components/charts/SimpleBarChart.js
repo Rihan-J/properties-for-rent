@@ -4,15 +4,17 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Rect, Text as SvgText } from 'react-native-svg';
-import { colors, fonts, fontSizes, spacing } from '../theme';
+import { colors, fonts, fontSizes, spacing } from '../../theme';
 
 export default function SimpleBarChart({ data, height = 200, width = 300 }) {
-  if (!data || data.length === 0) return null;
+  if (!data || !Array.isArray(data) || data.length === 0) return null;
 
-  const maxVal = Math.max(...data.map(d => d.value));
+  // Safe value extraction — filter out undefined/NaN values
+  const values = data.map(d => Number(d?.value) || 0);
+  const maxVal = Math.max(0, ...values);
   const padding = 20;
   const chartHeight = height - padding * 2;
-  const barWidth = (width - padding * 2) / data.length - 10;
+  const barWidth = Math.max(10, (width - padding * 2) / data.length - 10);
 
   return (
     <View style={styles.container}>
