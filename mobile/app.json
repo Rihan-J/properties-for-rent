@@ -21,7 +21,8 @@
       "package": "com.rihan.propertiesforrentz",
       "permissions": [
         "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION"
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ],
       "config": {
         "googleMaps": {
@@ -59,8 +60,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "132b887c-9f4b-4740-9c04-930f406c7b1f"
+        "projectId": "140de9db-6313-40b8-a7fa-bc3716a47a72"
       }
-    }
+    },
+    "owner": "rihaanj"
   }
 }
