@@ -113,7 +113,10 @@ export default function MapPicker({ initialLocation, onLocationSelect }) {
         return;
       }
 
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      let pos = await Location.getLastKnownPositionAsync({});
+      if (!pos) {
+        pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      }
       const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       
       setMarkerCoord(coords);
