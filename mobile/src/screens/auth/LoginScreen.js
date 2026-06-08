@@ -40,6 +40,7 @@ export default function LoginScreen() {
         navigation.getParent()?.navigate(redirect, redirectParams);
       } else {
         navigation.getParent()?.goBack();
+        navigation.getParent()?.navigate('MainTabs', { screen: 'ExploreTab' });
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.error || 'Invalid credentials');

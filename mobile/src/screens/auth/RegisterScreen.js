@@ -50,6 +50,7 @@ export default function RegisterScreen() {
         navigation.getParent()?.navigate(redirect, redirectParams);
       } else {
         navigation.getParent()?.goBack();
+        navigation.getParent()?.navigate('MainTabs', { screen: 'ExploreTab' });
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.error || 'Registration failed');
