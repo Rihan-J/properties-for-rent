@@ -9,6 +9,7 @@
  */
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { STORAGE_KEYS, API_TIMEOUT } from './constants';
 
 const API_URL =
@@ -28,7 +29,7 @@ let _cachedToken = null;
 
 export async function loadToken() {
   try {
-    _cachedToken = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
+    _cachedToken = await SecureStore.getItemAsync(STORAGE_KEYS.TOKEN);
   } catch {
     _cachedToken = null;
   }

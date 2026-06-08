@@ -2,7 +2,8 @@
  * LoginScreen — authentication entry point.
  */
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Image } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
@@ -33,14 +34,12 @@ export default function LoginScreen() {
       await login(email, password);
       // Dismiss the auth modal and navigate
       if (redirect === 'PropertyDetail') {
-        navigation.navigate('MainTabs', {
-          screen: 'ExploreTab',
-          params: { screen: 'PropertyDetail', params: redirectParams }
-        });
+        navigation.getParent()?.goBack();
       } else if (redirect) {
-        navigation.navigate(redirect, redirectParams);
+        navigation.getParent()?.goBack();
+        navigation.getParent()?.navigate(redirect, redirectParams);
       } else {
-        navigation.navigate('MainTabs', { screen: 'ExploreTab' });
+        navigation.getParent()?.goBack();
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.error || 'Invalid credentials');
@@ -50,11 +49,15 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.scroll}>
+    <View style={styles.container}>
+      <KeyboardAwareScrollView 
+        contentContainerStyle={styles.scroll}
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        keyboardShouldPersistTaps="handled"
+        extraHeight={100}
+        extraScrollHeight={20}
+      >
         
         {/* Top Left Header (simulate logo) */}
         <View style={styles.topLeftHeader}>
@@ -118,9 +121,9 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
       <Toast message={errorMsg} visible={!!errorMsg} type="error" onHide={() => setErrorMsg('')} />
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

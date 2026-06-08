@@ -77,7 +77,7 @@ export default function PropertyDetailScreen() {
   const handleLoginPrompt = () => {
     navigation.navigate('Auth', {
       screen: 'Login',
-      params: { redirect: 'PropertyDetail', propertyId },
+      params: { redirect: 'PropertyDetail', params: { propertyId } },
     });
   };
 

@@ -135,8 +135,6 @@ async function getProperties(req, res, next) {
       params.push(user.id);
     }
 
-    conditions.push(`(p.category != 'site' OR u.role = 'admin')`);
-
     if (category && category !== 'all' && VALID_CATEGORIES.includes(category)) {
       if (category === 'site') {
         conditions.push(`p.category = 'site' AND u.role = 'admin'`);

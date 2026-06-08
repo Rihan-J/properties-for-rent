@@ -7,8 +7,9 @@
  * - Token loaded async on app start → persistent login
  * - 401 interceptor clears state (automatic logout on invalid token)
  */
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import api, { setToken, clearAuthState, loadToken } from '../config/api';
 import { STORAGE_KEYS } from '../config/constants';
 
@@ -18,13 +19,15 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setTokenState] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authVersion, setAuthVersion] = useState(0);
+  const authVersionRef = useRef(0);
 
   // ─── Load persisted auth on app start ──────────────────
   useEffect(() => {
     async function restoreAuth() {
       try {
         const storedToken = await loadToken();
-        const storedUser = await AsyncStorage.getItem(STORAGE_KEYS.USER);
+        const storedUser = await SecureStore.getItemAsync(STORAGE_KEYS.USER);
 
         if (storedToken && storedUser) {
           const userData = JSON.parse(storedUser);
@@ -33,8 +36,8 @@ export function AuthProvider({ children }) {
           setToken(storedToken); // Set in API module for interceptors
         }
       } catch {
-        // Corrupted data — clear it
-        await AsyncStorage.multiRemove([STORAGE_KEYS.TOKEN, STORAGE_KEYS.USER]);
+        await SecureStore.deleteItemAsync(STORAGE_KEYS.TOKEN);
+        await SecureStore.deleteItemAsync(STORAGE_KEYS.USER);
       } finally {
         setLoading(false);
       }
@@ -45,7 +48,8 @@ export function AuthProvider({ children }) {
   // ─── Wire up the 401 handler ───────────────────────────
   const logout = useCallback(async () => {
     try {
-      await AsyncStorage.multiRemove([STORAGE_KEYS.TOKEN, STORAGE_KEYS.USER]);
+      await SecureStore.deleteItemAsync(STORAGE_KEYS.TOKEN);
+      await SecureStore.deleteItemAsync(STORAGE_KEYS.USER);
     } catch {}
     setToken(null);
     setTokenState(null);
@@ -61,12 +65,14 @@ export function AuthProvider({ children }) {
     const res = await api.post('/auth/login', { email, password });
     const { token: newToken, user: userData } = res.data.data;
 
-    await AsyncStorage.setItem(STORAGE_KEYS.TOKEN, newToken);
-    await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+    await SecureStore.setItemAsync(STORAGE_KEYS.TOKEN, newToken);
+    await SecureStore.setItemAsync(STORAGE_KEYS.USER, JSON.stringify(userData));
 
     setToken(newToken);
     setTokenState(newToken);
     setUser(userData);
+    authVersionRef.current += 1;
+    setAuthVersion(authVersionRef.current);
     return userData;
   }, []);
 
@@ -83,12 +89,14 @@ export function AuthProvider({ children }) {
       });
       const { token: newToken, user: userData } = res.data.data;
 
-      await AsyncStorage.setItem(STORAGE_KEYS.TOKEN, newToken);
-      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+      await SecureStore.setItemAsync(STORAGE_KEYS.TOKEN, newToken);
+      await SecureStore.setItemAsync(STORAGE_KEYS.USER, JSON.stringify(userData));
 
       setToken(newToken);
       setTokenState(newToken);
       setUser(userData);
+      authVersionRef.current += 1;
+      setAuthVersion(authVersionRef.current);
       return userData;
     },
     []
@@ -98,7 +106,7 @@ export function AuthProvider({ children }) {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, isOwner, isAdmin }}>
+    <AuthContext.Provider value={{ user, token, loading, authVersion, login, register, logout, isOwner, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

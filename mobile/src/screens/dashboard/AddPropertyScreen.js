@@ -2,7 +2,8 @@
  * AddPropertyScreen — form to create new property listing.
  */
 import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import api from '../../config/api';
 import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
@@ -93,8 +94,15 @@ export default function AddPropertyScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+    <View style={styles.container}>
+      <KeyboardAwareScrollView 
+        contentContainerStyle={styles.scroll}
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        keyboardShouldPersistTaps="handled"
+        extraHeight={100}
+        extraScrollHeight={20}
+      >
         
         {/* Image Upload */}
         <View style={styles.section}>
@@ -195,9 +203,9 @@ export default function AddPropertyScreen() {
           <Text style={styles.submitText}>{loading ? 'Saving...' : 'Publish Property'}</Text>
         </TouchableOpacity>
 
-      </ScrollView>
+      </KeyboardAwareScrollView>
       <Toast message={errorMsg} visible={!!errorMsg} type="error" onHide={() => setErrorMsg('')} />
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

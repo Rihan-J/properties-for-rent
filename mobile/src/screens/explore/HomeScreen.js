@@ -2,9 +2,11 @@
  * HomeScreen — Property discovery feed without map.
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, StyleSheet, Text, FlatList } from 'react-native';
+import { View, StyleSheet, Text, FlatList, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import api from '../../config/api';
+import { useAuth } from '../../context/AuthContext';
 import { useGeo } from '../../context/GeoContext';
 import { calculateDistance } from '../../lib/geo';
 import { getLat, getLng } from '../../lib/property';
@@ -23,6 +25,7 @@ const DEFAULT_CENTER = [12.9716, 77.5946];
 export default function HomeScreen() {
   const geo = useGeo();
   const insets = useSafeAreaInsets();
+  const { authVersion } = useAuth();
   
   // ─── Core State ──────
   const [lat, setLat] = useState(DEFAULT_CENTER[0]);
@@ -32,14 +35,22 @@ export default function HomeScreen() {
   const [bookingTypeFilter, setBookingTypeFilter] = useState('all');
   const [properties, setProperties] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [fetchingProperties, setFetchingProperties] = useState(false);
-  const [geoStatus, setGeoStatus] = useState('detecting'); // detecting | granted | denied | searched
+  const [fetchingProperties, setFetchingProperties] = useState(true);
+  const [geoStatus, setGeoStatus] = useState('detecting');
   const [locationName, setLocationName] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  
+  const [refreshing, setRefreshing] = useState(false);
+  const [hasInitialFetchCompleted, setHasInitialFetchCompleted] = useState(false);
+
   const abortRef = useRef(null);
   const debounceTimerRef = useRef(null);
   const hasInitialized = useRef(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchNearbyProperties(lat, lng, radius, category, bookingTypeFilter);
+    setRefreshing(false);
+  }, [lat, lng, radius, category, bookingTypeFilter, fetchNearbyProperties]);
 
   // ─── Fetch nearby properties ─────────
   const fetchNearbyProperties = useCallback(async (newLat, newLng, newRadius, newCategory, newBookingType = 'all') => {
@@ -48,6 +59,7 @@ export default function HomeScreen() {
     abortRef.current = controller;
 
     setFetchingProperties(true);
+    setHasInitialFetchCompleted(false);
 
     try {
       const params = { lat: newLat, lng: newLng, radius: newRadius, limit: 50 };
@@ -76,6 +88,7 @@ export default function HomeScreen() {
     } finally {
       if (!controller.signal.aborted) {
         setFetchingProperties(false);
+        setHasInitialFetchCompleted(true);
       }
     }
   }, []);
@@ -121,6 +134,48 @@ export default function HomeScreen() {
     }
   }, []);
 
+  // ─── Reset to loading state (separate from fetching) ─────────────────────
+  const resetToLoading = useCallback(() => {
+    setProperties([]);
+    setHasInitialFetchCompleted(false);
+    setFetchingProperties(true);
+  }, []);
+
+  // ─── When user logs in or registers ────────────────────────────────────
+  const prevAuthVersion = useRef(authVersion);
+  useEffect(() => {
+    if (authVersion !== prevAuthVersion.current) {
+      prevAuthVersion.current = authVersion;
+      // Tick 1: show skeleton immediately
+      resetToLoading();
+      // Tick 2: after React renders the skeleton, start the fetch
+      setTimeout(() => {
+        const { lat: l, lng: ln, radius: r, category: c, bookingTypeFilter: b } = latestFilters.current;
+        fetchNearbyProperties(l, ln, r, c, b);
+      }, 0);
+    }
+  }, [authVersion]);
+
+  const latestFilters = useRef({ lat, lng, radius, category, bookingTypeFilter });
+  useEffect(() => {
+    latestFilters.current = { lat, lng, radius, category, bookingTypeFilter };
+  });
+
+  // ─── Refresh properties every time Explore tab is focused ─────────────
+  useFocusEffect(
+    useCallback(() => {
+      if (hasInitialized.current) {
+        // Tick 1: show skeleton
+        resetToLoading();
+        // Tick 2: fetch after render
+        setTimeout(() => {
+          const { lat: l, lng: ln, radius: r, category: c, bookingTypeFilter: b } = latestFilters.current;
+          fetchNearbyProperties(l, ln, r, c, b);
+        }, 0);
+      }
+    }, [fetchNearbyProperties, resetToLoading])
+  );
+
   const handleLocationSelect = useCallback(async ({ lat: newLat, lng: newLng, name }) => {
     setLat(newLat);
     setLng(newLng);
@@ -131,17 +186,20 @@ export default function HomeScreen() {
 
   const handleRadiusChange = useCallback((newRadius) => {
     setRadius(newRadius);
+    setFetchingProperties(true);
     debouncedFetch(lat, lng, newRadius, category, bookingTypeFilter);
   }, [lat, lng, category, bookingTypeFilter, debouncedFetch]);
 
   const handleCategoryChange = useCallback((newCategory) => {
     setCategory(newCategory);
     setBookingTypeFilter('all');
+    setFetchingProperties(true);
     debouncedFetch(lat, lng, radius, newCategory, 'all');
   }, [lat, lng, radius, debouncedFetch]);
 
   const handleBookingTypeChange = useCallback((newBookingType) => {
     setBookingTypeFilter(newBookingType);
+    setFetchingProperties(true);
     debouncedFetch(lat, lng, radius, category, newBookingType);
   }, [lat, lng, radius, category, debouncedFetch]);
 
@@ -210,7 +268,7 @@ export default function HomeScreen() {
         keyExtractor={(i, index) => i?.id ?? `property-${index}`}
         ListHeaderComponent={headerElement}
         ListEmptyComponent={() => (
-          fetchingProperties ? (
+          (!hasInitialFetchCompleted || fetchingProperties || geo.isDetecting) ? (
             <View style={styles.loadingWrapper}>
                <LoadingScreen type="list" />
             </View>
@@ -236,11 +294,19 @@ export default function HomeScreen() {
         }}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
       />
 
       <Toast 
         message="Loading properties..." 
-        visible={fetchingProperties && !initialLoading} 
+        visible={fetchingProperties} 
         type="info"
         duration={0}
       />

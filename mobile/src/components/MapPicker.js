@@ -1,72 +1,104 @@
 /**
- * MapPicker — precise map picker matching frontend implementation.
+ * MapPicker — precise map picker using WebView + Leaflet (OSM).
  * Supports manual coordinates, Use My Location, Open in Google Maps, and map tap-to-pin.
  */
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Linking } from 'react-native';
-import RNMapView, { Marker, UrlTile } from 'react-native-maps';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Linking } from 'react-native';
+import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { colors, fonts, fontSizes, spacing, borderRadius } from '../theme';
 import SearchBar from './SearchBar';
 
-// --- DMS → Decimal converter (from web) ---
-function dmsToDecimal(dms) {
-  const parts = dms.match(/(\d+)[°](\d+)['\u2032]([\d.]+)["\u2033]([NSEW])/i);
-  if (!parts) return null;
-  const degrees = parseFloat(parts[1]);
-  const minutes = parseFloat(parts[2]);
-  const seconds = parseFloat(parts[3]);
-  const direction = parts[4].toUpperCase();
-  let decimal = degrees + minutes / 60 + seconds / 3600;
-  if (direction === 'S' || direction === 'W') decimal *= -1;
-  return decimal;
-}
-
-function parseCoordinates(input) {
-  const trimmed = input.trim();
-  if (!trimmed) return null;
-  if (trimmed.includes('°')) {
-    const parts = trimmed.split(/[\s,]+/).filter(p => p.includes('°'));
-    if (parts.length === 2) {
-      const lat = dmsToDecimal(parts[0]);
-      const lng = dmsToDecimal(parts[1]);
-      if (lat !== null && lng !== null) return { lat, lng };
-    }
-    return null;
-  }
-  const parts = trimmed.split(/[\s,]+/).filter(Boolean);
-  if (parts.length === 2) {
-    const lat = parseFloat(parts[0]);
-    const lng = parseFloat(parts[1]);
-    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
-  }
-  return null;
-}
-
 export default function MapPicker({ initialLocation, onLocationSelect }) {
   const [detecting, setDetecting] = useState(false);
   const [showLocationWarning, setShowLocationWarning] = useState(false);
-  const [coordInput, setCoordInput] = useState('');
-  const [coordError, setCoordError] = useState('');
   
   const [markerCoord, setMarkerCoord] = useState(initialLocation || null);
+  const webviewRef = useRef(null);
 
-  const [region, setRegion] = useState({
-    latitude: initialLocation?.lat || 15.3173,
-    longitude: initialLocation?.lng || 75.7139,
-    latitudeDelta: initialLocation ? 0.05 : 10,
-    longitudeDelta: initialLocation ? 0.05 : 10,
-  });
+  const htmlContent = useMemo(() => {
+    const lat = initialLocation?.lat || 15.3173;
+    const lng = initialLocation?.lng || 75.7139;
+    const hasInitial = !!initialLocation;
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    body { padding: 0; margin: 0; }
+    html, body, #map { height: 100%; width: 100%; touch-action: none; overscroll-behavior: none; }
+    .leaflet-control-attribution a[title="A JavaScript library for interactive maps"] { display: none; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    var map = L.map('map', { zoomControl: false }).setView([${lat}, ${lng}], ${hasInitial ? '15' : '10'});
+    L.tileLayer('https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    var marker = null;
+    ${hasInitial ? `
+      marker = L.marker([${lat}, ${lng}], { draggable: true }).addTo(map);
+      marker.on('dragend', function(event) {
+        var pos = event.target.getLatLng();
+        map.panTo(pos);
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'locationSelect', lat: pos.lat, lng: pos.lng }));
+      });
+    ` : ''}
+
+    map.on('click', function(e) {
+      var lat = e.latlng.lat;
+      var lng = e.latlng.lng;
+      if (marker) {
+        marker.setLatLng(e.latlng);
+      } else {
+        marker = L.marker(e.latlng, { draggable: true }).addTo(map);
+        marker.on('dragend', function(event) {
+          var pos = event.target.getLatLng();
+          map.panTo(pos);
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'locationSelect', lat: pos.lat, lng: pos.lng }));
+        });
+      }
+      map.panTo(e.latlng);
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'locationSelect', lat: lat, lng: lng }));
+    });
+
+    window.updateMarker = function(lat, lng) {
+      if (marker) {
+        marker.setLatLng([lat, lng]);
+      } else {
+        marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+        marker.on('dragend', function(event) {
+          var pos = event.target.getLatLng();
+          map.panTo(pos);
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'locationSelect', lat: pos.lat, lng: pos.lng }));
+        });
+      }
+      map.setView([lat, lng], 15);
+    };
+
+    window.resetMarker = function() {
+      if (marker) {
+        map.removeLayer(marker);
+        marker = null;
+      }
+    };
+  </script>
+</body>
+</html>
+    `;
+  }, []);
 
   useEffect(() => {
     if (initialLocation?.lat && initialLocation?.lng) {
       setMarkerCoord({ lat: initialLocation.lat, lng: initialLocation.lng });
-      setRegion({
-        latitude: initialLocation.lat,
-        longitude: initialLocation.lng,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      });
+      webviewRef.current?.injectJavaScript(`window.updateMarker(${initialLocation.lat}, ${initialLocation.lng}); true;`);
     }
   }, [initialLocation]);
 
@@ -86,8 +118,8 @@ export default function MapPicker({ initialLocation, onLocationSelect }) {
       
       setMarkerCoord(coords);
       onLocationSelect?.(coords);
-      setRegion({ latitude: coords.lat, longitude: coords.lng, latitudeDelta: 0.05, longitudeDelta: 0.05 });
       setShowLocationWarning(true);
+      webviewRef.current?.injectJavaScript(`window.updateMarker(${coords.lat}, ${coords.lng}); true;`);
     } catch (err) {
       console.warn('Failed to get current location', err);
       alert('Could not detect your location. Please click on the map instead.');
@@ -105,14 +137,20 @@ export default function MapPicker({ initialLocation, onLocationSelect }) {
     setMarkerCoord(null);
     onLocationSelect?.(null);
     setShowLocationWarning(false);
+    webviewRef.current?.injectJavaScript(`window.resetMarker(); true;`);
   };
 
-  const handleMapPress = (e) => {
-    const coordinate = e?.nativeEvent?.coordinate;
-    if (!coordinate) return;
-    const coords = { lat: coordinate.latitude, lng: coordinate.longitude };
-    setMarkerCoord(coords);
-    onLocationSelect?.(coords);
+  const handleMessage = (event) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'locationSelect') {
+        const coords = { lat: data.lat, lng: data.lng };
+        setMarkerCoord(coords);
+        onLocationSelect?.(coords);
+      }
+    } catch (e) {
+      console.warn('Error parsing webview message', e);
+    }
   };
 
   return (
@@ -160,33 +198,22 @@ export default function MapPicker({ initialLocation, onLocationSelect }) {
           onLocationSelect={(loc) => {
             setMarkerCoord(loc);
             onLocationSelect?.(loc);
-            setRegion({ latitude: loc.lat, longitude: loc.lng, latitudeDelta: 0.05, longitudeDelta: 0.05 });
+            webviewRef.current?.injectJavaScript(`window.updateMarker(${loc.lat}, ${loc.lng}); true;`);
           }} 
         />
       </View>
 
       {/* Map */}
       <View style={styles.mapContainer}>
-        <RNMapView
+        <WebView
+          ref={webviewRef}
+          source={{ html: htmlContent }}
+          onMessage={handleMessage}
           style={styles.map}
-          region={region}
-          onPress={handleMapPress}
-          mapType="none"
-        >
-          {/* Using CARTO Voyager tiles to prevent OSM User-Agent blocking */}
-          <UrlTile
-            urlTemplate="https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
-            maximumZ={19}
-            flipY={false}
-          />
-          {markerCoord && (
-            <Marker coordinate={{ latitude: markerCoord.lat, longitude: markerCoord.lng }} />
-          )}
-        </RNMapView>
-        {/* OSM Attribution overlay */}
-        <View style={styles.osmAttribution} pointerEvents="none">
-          <Text style={styles.osmAttributionText}>© OpenStreetMap contributors</Text>
-        </View>
+          nestedScrollEnabled={true}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+        />
         <View style={styles.mapOverlay} pointerEvents="none">
           <Text style={styles.mapHint}>Click anywhere on the map to drop a pin</Text>
         </View>
@@ -223,19 +250,9 @@ const styles = StyleSheet.create({
   warningText: { flex: 1, color: '#a16207', fontSize: 11, fontFamily: fonts.regular },
   warningClose: { color: '#facc15', fontSize: 14, fontFamily: fonts.bold },
 
-  coordBox: { backgroundColor: '#ffffff', borderColor: '#e5e7eb', borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 2 },
-  coordInputRow: { flexDirection: 'row', gap: 8 },
-  coordInput: { flex: 1, backgroundColor: '#f9fafb', borderColor: '#e5e7eb', borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13, color: colors.text, fontFamily: fonts.regular },
-  coordApplyBtn: { backgroundColor: '#1f2937', paddingHorizontal: 16, justifyContent: 'center', borderRadius: 8 },
-  coordApplyText: { color: '#ffffff', fontSize: 12, fontFamily: fonts.semiBold },
-  coordError: { color: '#ef4444', fontSize: 11, marginTop: 4, fontFamily: fonts.medium },
-  coordHint: { color: '#9ca3af', fontSize: 10, marginTop: 4, fontFamily: fonts.regular },
-
   mapContainer: { width: '100%', height: 350, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#d1d5db', position: 'relative', marginBottom: 8 },
-  map: { position: 'absolute', top: -30, left: -10, right: -10, bottom: -30 },
+  map: { flex: 1 },
 
-  osmAttribution: { position: 'absolute', bottom: 4, right: 6, backgroundColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 4, paddingVertical: 2, borderRadius: 4, zIndex: 10 },
-  osmAttributionText: { fontSize: 9, color: '#444', fontFamily: fonts.regular },
   mapOverlay: { position: 'absolute', top: 12, left: 0, right: 0, alignItems: 'center' },
   mapHint: { backgroundColor: 'rgba(255,255,255,0.9)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, fontSize: 11, color: '#374151', fontFamily: fonts.medium, overflow: 'hidden' },
 
