@@ -136,12 +136,8 @@ async function getProperties(req, res, next) {
     }
 
     if (category && category !== 'all' && VALID_CATEGORIES.includes(category)) {
-      if (category === 'site') {
-        conditions.push(`p.category = 'site' AND u.role = 'admin'`);
-      } else {
-        conditions.push(`p.category = $${paramIndex++}`);
-        params.push(category);
-      }
+      conditions.push(`p.category = $${paramIndex++}`);
+      params.push(category);
     }
 
     if (normalizedBookingType) {
@@ -246,11 +242,9 @@ async function getNearbyProperties(req, res, next) {
         WHERE p.status = 'approved'
           AND p.latitude BETWEEN $3 AND $4
           AND p.longitude BETWEEN $5 AND $6
-          AND (p.category != 'site' OR u.role = 'admin')
           AND (
             $10::text IS NULL
-            OR ($10::text = 'site' AND p.category = 'site' AND u.role = 'admin')
-            OR ($10::text != 'site' AND p.category = $10)
+            OR p.category = $10
           )
           AND (
             $11::text IS NULL

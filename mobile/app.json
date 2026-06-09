@@ -58,11 +58,11 @@
       ],
       "expo-secure-store"
     ],
+    "owner": "rihan-j27",
     "extra": {
       "eas": {
-        "projectId": "140de9db-6313-40b8-a7fa-bc3716a47a72"
+        "projectId": "132b887c-9f4b-4740-9c04-930f406c7b1f"
       }
-    },
-    "owner": "rihaanj"
+    }
   }
 }
