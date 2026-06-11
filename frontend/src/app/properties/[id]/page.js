@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import api from '@/lib/api';
 import { getGoogleMapsUrl } from '@/lib/geo';
@@ -10,6 +10,7 @@ import { getPropertyPricing } from '@/lib/property';
 import PropertyDetailSkeleton from '@/components/skeletons/PropertyDetailSkeleton';
 import ReviewsSection from '@/components/ReviewsSection';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const PropertyMap = dynamic(() => import('@/components/map/PropertyMap'), {
   ssr: false,
@@ -22,13 +23,17 @@ function ContactReveal({ property, pricing }) {
   const [locked, setLocked] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
+  const { id } = useParams();
 
   function handleReveal() {
+    if (locked) return;
+    
+    // If not logged in, redirect to login page with return URL
     if (!user) {
-      router.push(`/auth/login?redirect=${encodeURIComponent(`/properties/${property.id}`)}`);
+      router.push(`/auth/login?redirect=/properties/${id}`);
       return;
     }
-    if (locked) return;
+
     setLocked(true);
     setRevealed(true);
     // Unlock after 1 second to prevent rapid clicks
@@ -44,13 +49,17 @@ function ContactReveal({ property, pricing }) {
     return (
       <button
         onClick={handleReveal}
-        disabled={locked}
+        disabled={locked && !!user}
         className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#1a1815] text-white rounded-xl shadow-sm hover:bg-[#2e2a25] hover:shadow-md transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 font-bold tracking-wide"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          {user ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          )}
         </svg>
-        Show Contact Details
+        {user ? 'Show Contact Details' : 'Login to View Contact'}
       </button>
     );
   }
