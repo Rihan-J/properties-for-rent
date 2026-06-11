@@ -24,8 +24,7 @@ function LoginContent() {
 
     try {
       await login(email, password);
-      const redirectUrl = searchParams.get('redirect') || '/';
-      router.push(redirectUrl);
+      router.push('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please try again.');
     } finally {

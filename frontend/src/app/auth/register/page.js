@@ -40,8 +40,7 @@ function RegisterContent() {
 
     try {
       await register(name, email, password, 'user', phone, accepted);
-      const redirectUrl = searchParams.get('redirect') || '/';
-      router.push(redirectUrl);
+      router.push('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed. Please try again.');
     } finally {
