@@ -8,7 +8,7 @@ import CategoryFilter from '@/components/explore/CategoryFilter';
 import PropertyCard from '@/components/PropertyCard';
 import EmptyState from '@/components/EmptyState';
 
-
+const DEFAULT_CENTER = { lat: 13.9299, lng: 75.5681, name: 'Shivamogga (default)' };
 
 // Basic distance calculation for sorting
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -25,11 +25,11 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 export default function HomePage() {
   const [userLocation, setUserLocation] = useState(null); // The actual GPS location
-  const [location, setLocation] = useState(null);
+  const [location, setLocation] = useState(DEFAULT_CENTER);
   const [radius, setRadius] = useState(20);
   const [category, setCategory] = useState('all');
   const [properties, setProperties] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [geoStatus, setGeoStatus] = useState('detecting');
 
   const abortRef = useRef(null);
@@ -55,7 +55,6 @@ export default function HomePage() {
   }, []);
 
   const fetchProperties = useCallback(async () => {
-    if (!location) return;
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -85,10 +84,10 @@ export default function HomePage() {
   }, [location, radius, category]);
 
   useEffect(() => {
-    if (location) {
+    if (geoStatus !== 'detecting') {
       fetchProperties();
     }
-  }, [location, fetchProperties]);
+  }, [geoStatus, fetchProperties]);
 
   // Handle location selection from SearchBar
   function handleLocationSelect(loc) {
@@ -101,7 +100,7 @@ export default function HomePage() {
       setLocation(userLocation);
       setGeoStatus('granted');
     } else {
-      setLocation(null);
+      setLocation(DEFAULT_CENTER);
       setGeoStatus('denied');
     }
   }
@@ -118,11 +117,7 @@ export default function HomePage() {
                 onClear={handleClearLocation} 
               />
               <p className="text-[10px] text-gray-500 mt-1.5 px-2 font-medium tracking-wide uppercase">
-                {location ? (
-                  <>Near: <span className="font-bold text-[#1a1815]">{location.name}</span></>
-                ) : (
-                  'No location selected'
-                )}
+                Near: <span className="font-bold text-[#1a1815]">{location.name}</span>
               </p>
             </div>
             <RadiusFilter value={radius} onChange={setRadius} />
@@ -134,13 +129,7 @@ export default function HomePage() {
 
       {/* Feed Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!location ? (
-          <EmptyState 
-            icon="📍"
-            title="Location Required" 
-            subtitle="Please allow location access or search for an area above to see nearby stays."
-          />
-        ) : loading ? (
+        {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-500">
             <div className="w-10 h-10 border-4 border-[#e2ddd8] border-t-[#1a1815] rounded-full animate-spin mb-6"></div>
             <h3 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Finding the best stays...</h3>

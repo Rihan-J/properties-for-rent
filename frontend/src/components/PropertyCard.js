@@ -13,7 +13,11 @@ export default function PropertyCard({ property, showDelete, onDelete, isDeletin
 
   const handleNavigation = (e) => {
     e.preventDefault();
-    router.push(`/properties/${property.id}`);
+    if (!user) {
+      router.push(`/auth/login?redirect=/properties/${property.id}`);
+    } else {
+      router.push(`/properties/${property.id}`);
+    }
   };
 
   return (
