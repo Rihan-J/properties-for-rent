@@ -2,6 +2,7 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { GeoProvider } from '@/context/GeoContext';
 import Navbar from '@/components/Navbar';
+import BottomNav from '@/components/BottomNav';
 
 export const metadata = {
   title: 'Properties for Rentz — Find Your Perfect Stay',
@@ -20,9 +21,10 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <GeoProvider>
             <Navbar />
-            <main className="pt-16">
+            <main className="pt-14 pb-24">
               {children}
             </main>
+            <BottomNav />
           </GeoProvider>
         </AuthProvider>
       </body>

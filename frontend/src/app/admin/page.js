@@ -139,10 +139,10 @@ function PropertiesPanel() {
               {properties.map(p => (
                 <tr key={p.id} className="hover:bg-[#faf9f7] transition-colors duration-200">
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <img src={getOptimizedImageUrl(p.image_url, { width: 160 })} alt="" loading="lazy" className="w-11 h-11 rounded-lg object-cover shrink-0 border border-[#e8e2db]" />
-                      <span className="text-sm font-medium text-[#1a1815] truncate max-w-[200px]">{p.title}</span>
-                    </div>
+                    <Link href={`/properties/${p.id}`} className="flex items-center gap-3 group">
+                      <img src={getOptimizedImageUrl(p.image_url, { width: 160 })} alt="" loading="lazy" className="w-11 h-11 rounded-lg object-cover shrink-0 border border-[#e8e2db] group-hover:border-[#b5936b] transition-colors" />
+                      <span className="text-sm font-medium text-[#1a1815] truncate max-w-[200px] group-hover:text-[#8a6b4a] underline-offset-2 decoration-[#e2ddd8] group-hover:underline transition-all">{p.title}</span>
+                    </Link>
                   </td>
                   <td className="px-6 py-4">
                     {p.category ? (

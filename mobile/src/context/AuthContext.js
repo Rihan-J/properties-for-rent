@@ -8,7 +8,7 @@
  * - 401 interceptor clears state (automatic logout on invalid token)
  */
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import * as SecureStore from 'expo-secure-store';
 import api, { setToken, clearAuthState, loadToken } from '../config/api';
 import { STORAGE_KEYS } from '../config/constants';

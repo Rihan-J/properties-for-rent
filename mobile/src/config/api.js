@@ -8,7 +8,7 @@
  * - Same retry logic (429, 5xx) and request cancellation support
  */
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import * as SecureStore from 'expo-secure-store';
 import { STORAGE_KEYS, API_TIMEOUT } from './constants';
 
