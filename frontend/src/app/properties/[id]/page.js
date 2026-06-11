@@ -9,7 +9,8 @@ import { getOptimizedImageUrl } from '@/lib/cloudinary';
 import { getPropertyPricing } from '@/lib/property';
 import PropertyDetailSkeleton from '@/components/skeletons/PropertyDetailSkeleton';
 import ReviewsSection from '@/components/ReviewsSection';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const PropertyMap = dynamic(() => import('@/components/map/PropertyMap'), {
   ssr: false,
@@ -20,9 +21,15 @@ const PropertyMap = dynamic(() => import('@/components/map/PropertyMap'), {
 function ContactReveal({ property, pricing }) {
   const [revealed, setRevealed] = useState(false);
   const [locked, setLocked] = useState(false);
+  const { user } = useAuth();
+  const router = useRouter();
 
   function handleReveal() {
     if (locked) return;
+    if (!user) {
+      router.push(`/auth/login?redirect=/properties/${property.id}`);
+      return;
+    }
     setLocked(true);
     setRevealed(true);
     // Unlock after 1 second to prevent rapid clicks
@@ -44,7 +51,7 @@ function ContactReveal({ property, pricing }) {
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
         </svg>
-        Show Contact Details
+        {user ? 'Show Contact Details' : 'Login to View Contact'}
       </button>
     );
   }
@@ -96,9 +103,7 @@ function ContactReveal({ property, pricing }) {
 // ─── Main Page ──────────────────────────────────────────
 export default function PropertyDetailPage() {
   return (
-    <ProtectedRoute>
-      <PropertyDetailPanel />
-    </ProtectedRoute>
+    <PropertyDetailPanel />
   );
 }
 
