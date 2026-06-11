@@ -43,7 +43,12 @@ export default function HomePage() {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude, name: 'Your Location' };
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        const loc = { ...coords, name: 'Your Location' };
+        
+        // Save precise location to localStorage so Add Property can use the exact same spot
+        localStorage.setItem('user_precise_location', JSON.stringify(coords));
+        
         setUserLocation(loc);
         setLocation(loc);
         setGeoStatus('granted');
@@ -67,7 +72,7 @@ export default function HomePage() {
         }
         setGeoStatus('denied');
       },
-      { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
     );
   }, []);
 

@@ -92,6 +92,24 @@ export default function MapPicker({ value, onChange }) {
   const [showLocationWarning, setShowLocationWarning] = useState(false);
   const [geoError, setGeoError] = useState('');
 
+  // Automatically load precise location from Explore page if available
+  useEffect(() => {
+    if (!value?.lat) {
+      try {
+        const saved = localStorage.getItem('user_precise_location');
+        if (saved) {
+          const coords = JSON.parse(saved);
+          if (coords.lat && coords.lng) {
+            // Drop pin automatically
+            onChange(coords);
+          }
+        }
+      } catch (err) {
+        // Ignore parse errors
+      }
+    }
+  }, []);
+
   const center = value?.lat != null && value?.lng != null ? [value.lat, value.lng] : [15.3173, 75.7139];
   const zoom = value?.lat != null && value?.lng != null ? 14 : 6;
 
@@ -144,7 +162,7 @@ export default function MapPicker({ value, onChange }) {
 
         setGeoError('Could not detect your location. Please click on the map instead.');
       },
-      { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
     );
   }
 
