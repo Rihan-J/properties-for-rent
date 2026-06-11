@@ -100,31 +100,6 @@ export default function MapPicker({ value, onChange }) {
     setShowLocationWarning(false);
     setGeoError('');
 
-    const fallbackToIP = () => {
-      fetch('https://ipapi.co/json/')
-        .then(res => res.json())
-        .then(data => {
-          if (data.latitude && data.longitude) {
-            onChange({ lat: data.latitude, lng: data.longitude });
-            setGeoError('Used network location (GPS permission denied or unavailable). Please drag the map if needed.');
-            setShowLocationWarning(true);
-          } else {
-            setGeoError('Could not detect location. Please click on the map to set your location.');
-          }
-        })
-        .catch(() => {
-          setGeoError('Could not detect location. Please click on the map to set your location.');
-        })
-        .finally(() => {
-          setDetecting(false);
-        });
-    };
-
-    if (!navigator.geolocation) {
-      fallbackToIP();
-      return;
-    }
-
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const coords = {
@@ -136,10 +111,40 @@ export default function MapPicker({ value, onChange }) {
         setShowLocationWarning(true);
       },
       (error) => {
-        // Run IP fallback for ANY error (including code 1: permission denied, which Instagram/Safari often do)
-        fallbackToIP();
+        setDetecting(false);
+        const isInstagram = navigator.userAgent.includes('Instagram');
+        
+        if (error.code === 1) {
+          if (isInstagram) {
+            setGeoError('Instagram blocks location access. Please tap the 3 dots (⋮) and select "Open in Chrome/Browser".');
+          } else {
+            setGeoError('Location access denied. Please allow it in your browser settings.');
+          }
+          return;
+        }
+
+        if (error.code === 2 || error.code === 3) {
+          // Fallback to IP-based location if GPS times out or is unavailable
+          fetch('https://ipapi.co/json/')
+            .then(res => res.json())
+            .then(data => {
+              if (data.latitude && data.longitude) {
+                onChange({ lat: data.latitude, lng: data.longitude });
+                setGeoError(`Used network location (${data.city}). GPS timed out. Drag map to adjust.`);
+                setShowLocationWarning(true);
+              } else {
+                setGeoError('Location request timed out. Please click on the map to set your location.');
+              }
+            })
+            .catch(() => {
+              setGeoError('Location request timed out. Please click on the map to set your location.');
+            });
+          return;
+        }
+
+        setGeoError('Could not detect your location. Please click on the map instead.');
       },
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+      { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
     );
   }
 

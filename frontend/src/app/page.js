@@ -36,24 +36,8 @@ export default function HomePage() {
   
   // Geolocation
   useEffect(() => {
-    const fallbackToIP = () => {
-      fetch('https://ipapi.co/json/')
-        .then(res => res.json())
-        .then(data => {
-          if (data.latitude && data.longitude) {
-            const loc = { lat: data.latitude, lng: data.longitude, name: data.city || 'Your Location' };
-            setUserLocation(loc);
-            setLocation(loc);
-            setGeoStatus('granted');
-          } else {
-            setGeoStatus('denied');
-          }
-        })
-        .catch(() => setGeoStatus('denied'));
-    };
-
     if (!navigator.geolocation) {
-      fallbackToIP();
+      setGeoStatus('denied');
       return;
     }
 
@@ -65,10 +49,25 @@ export default function HomePage() {
         setGeoStatus('granted');
       },
       (error) => {
-        // Run IP fallback for ANY error (including code 1: permission denied, which Instagram/Safari often do)
-        fallbackToIP();
+        if (error.code === 2 || error.code === 3) {
+          fetch('https://ipapi.co/json/')
+            .then(res => res.json())
+            .then(data => {
+              if (data.latitude && data.longitude) {
+                const loc = { lat: data.latitude, lng: data.longitude, name: data.city || 'Your Location' };
+                setUserLocation(loc);
+                setLocation(loc);
+                setGeoStatus('granted');
+              } else {
+                setGeoStatus('denied');
+              }
+            })
+            .catch(() => setGeoStatus('denied'));
+          return;
+        }
+        setGeoStatus('denied');
       },
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+      { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
     );
   }, []);
 
