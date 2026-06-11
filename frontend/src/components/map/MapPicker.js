@@ -119,7 +119,7 @@ export default function MapPicker({ value, onChange }) {
         else if (error.code === 3) msg = 'Location request timed out. Please click on the map to set your location.';
         setGeoError(msg);
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 }
     );
   }
 
