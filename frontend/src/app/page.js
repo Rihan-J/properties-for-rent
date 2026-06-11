@@ -130,10 +130,10 @@ export default function HomePage() {
       {/* Feed Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <div key={i} className="animate-pulse bg-white rounded-2xl h-[340px] border border-[#e8e2db]"></div>
-            ))}
+          <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-500">
+            <div className="w-10 h-10 border-4 border-[#e2ddd8] border-t-[#1a1815] rounded-full animate-spin mb-6"></div>
+            <h3 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Finding the best stays...</h3>
+            <p className="text-sm text-[#5a5550]">We are fetching the latest properties near you.</p>
           </div>
         ) : properties.length === 0 ? (
           <EmptyState 

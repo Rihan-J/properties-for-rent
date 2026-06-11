@@ -18,7 +18,7 @@ export default function Navbar() {
   const authIsAdmin = hydrated && isAdmin;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[1000] bg-transparent">
+    <nav className="fixed top-0 left-0 right-0 z-[1000] bg-[#f7f4f0]/70 backdrop-blur-md border-b border-[#e8e2db]/50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2.5">
