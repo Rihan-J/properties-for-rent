@@ -40,7 +40,8 @@ async function createProperty(req, res, next) {
 
     if (isLodge) {
       // Normalize: accept booking_types array OR legacy booking_type string
-      const types = Array.isArray(booking_types) ? booking_types : (booking_type ? [booking_type] : []);
+      let types = Array.isArray(booking_types) ? booking_types : (booking_type ? [booking_type] : []);
+      if (types.includes('both')) types = ['hourly', 'daily'];
       const hasHourly = types.includes('hourly');
       const hasDaily = types.includes('daily');
 

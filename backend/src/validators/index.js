@@ -85,7 +85,8 @@ function validateProperty(body) {
     }
   } else {
     // Normalize: accept booking_types array OR legacy booking_type string
-    const types = Array.isArray(booking_types) ? booking_types : (booking_type ? [booking_type] : []);
+    let types = Array.isArray(booking_types) ? booking_types : (booking_type ? [booking_type] : []);
+    if (types.includes('both')) types = ['hourly', 'daily'];
     const validTypes = types.filter(t => ['hourly', 'daily'].includes(t));
 
     if (validTypes.length === 0) {

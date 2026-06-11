@@ -36,9 +36,31 @@ export default function AddPropertyScreen() {
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = async () => {
-    if (!title || !price || !category || !location || !imageFile) {
+    if (!title || !category || !location || !imageFile) {
       setErrorMsg('Please fill all required fields including image and location');
       return;
+    }
+
+    let priceNum = 0;
+    if (category !== 'lodge') {
+      if (!price) {
+        setErrorMsg('Please enter the base price');
+        return;
+      }
+      priceNum = Number(price);
+      if (Number.isNaN(priceNum) || priceNum <= 0) {
+        setErrorMsg('Please enter a valid price');
+        return;
+      }
+    } else {
+      if ((bookingType === 'hourly' || bookingType === 'both') && !pricePerHour) {
+        setErrorMsg('Please enter price per hour');
+        return;
+      }
+      if ((bookingType === 'daily' || bookingType === 'both') && !pricePerDay) {
+        setErrorMsg('Please enter price per day');
+        return;
+      }
     }
 
     // Validate coordinates
@@ -46,12 +68,6 @@ export default function AddPropertyScreen() {
     const lng = Number(location.lng);
     if (Number.isNaN(lat) || Number.isNaN(lng)) {
       setErrorMsg('Invalid location selected. Please pick a location on the map.');
-      return;
-    }
-
-    const priceNum = Number(price);
-    if (Number.isNaN(priceNum) || priceNum <= 0) {
-      setErrorMsg('Please enter a valid price');
       return;
     }
 
@@ -138,8 +154,12 @@ export default function AddPropertyScreen() {
 
         {/* Pricing */}
         <View style={styles.section}>
-          <Text style={styles.label}>Base Price / Month *</Text>
-          <TextInput style={styles.input} value={price} onChangeText={setPrice} placeholder="e.g. 15000" keyboardType="numeric" />
+          {category !== 'lodge' && (
+            <>
+              <Text style={styles.label}>Base Price / Month *</Text>
+              <TextInput style={styles.input} value={price} onChangeText={setPrice} placeholder="e.g. 15000" keyboardType="numeric" />
+            </>
+          )}
 
           {category === 'lodge' && (
             <View style={styles.subSection}>
