@@ -11,6 +11,11 @@ import PropertyDetailSkeleton from '@/components/skeletons/PropertyDetailSkeleto
 import ReviewsSection from '@/components/ReviewsSection';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
+const PropertyMap = dynamic(() => import('@/components/map/PropertyMap'), {
+  ssr: false,
+  loading: () => <div className="w-full h-[300px] bg-gray-100 animate-pulse rounded-xl" />
+});
+
 // ─── Contact Reveal Component ───────────────────────────
 function ContactReveal({ property, pricing }) {
   const [revealed, setRevealed] = useState(false);
@@ -138,8 +143,8 @@ function PropertyDetailPanel() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 lg:py-14">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
-        {/* LEFT COLUMN: Image & Map */}
-        <div className="space-y-8">
+        {/* LEFT COLUMN: Image */}
+        <div className="lg:sticky lg:top-24 lg:self-start space-y-8">
           
           {/* Property Image */}
           <div className="w-full h-[400px] sm:h-[480px] rounded-2xl overflow-hidden shadow-sm border border-[#e8e2db] bg-[#f0ece7] transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
@@ -149,26 +154,6 @@ function PropertyDetailPanel() {
               loading="lazy"
               className="w-full h-full object-cover"
             />
-          </div>
-
-          {/* Map Section */}
-          <div className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-6 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-4">Location</p>
-            <div className="w-full flex items-center justify-center p-8 bg-[#f7f4f0] rounded-xl border border-[#e8e2db]">
-              <span className="text-4xl mb-2">📍</span>
-            </div>
-            <a
-              href={getGoogleMapsUrl(p.latitude, p.longitude)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#f7f4f0] text-[#1a1815] rounded-xl shadow-sm hover:shadow-md hover:bg-[#f0ece7] transition-all duration-300 active:scale-[0.98] text-sm font-bold border border-[#e2ddd8]"
-            >
-              <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              Open in Maps
-            </a>
           </div>
 
         </div>
@@ -275,6 +260,24 @@ function PropertyDetailPanel() {
           <div className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-6 sm:p-8 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-5">Contact Owner</p>
             <ContactReveal property={p} pricing={pricing} />
+          </div>
+
+          {/* Map Section */}
+          <div className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-6 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-4">Location</p>
+            <PropertyMap lat={p.latitude} lng={p.longitude} />
+            <a
+              href={getGoogleMapsUrl(p.latitude, p.longitude)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#f7f4f0] text-[#1a1815] rounded-xl shadow-sm hover:shadow-md hover:bg-[#f0ece7] transition-all duration-300 active:scale-[0.98] text-sm font-bold border border-[#e2ddd8]"
+            >
+              <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Open in Maps
+            </a>
           </div>
 
           {/* Reviews */}
