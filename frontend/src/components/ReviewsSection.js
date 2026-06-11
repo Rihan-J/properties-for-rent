@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import Link from 'next/link';
 
 // ─── Star Rating Display ────────────────────────────────
 function Stars({ rating, size = 'sm' }) {
@@ -155,7 +156,15 @@ export default function ReviewsSection({ propertyId }) {
       </div>
 
       {/* Review Form (logged-in users only, not yet reviewed) */}
-      {user && !hasReviewed && !submitted && (
+      {!user ? (
+        <div className="mb-8 p-6 bg-[#f7f4f0] rounded-2xl border border-[#e8e2db] text-center">
+          <p className="text-[15px] font-bold text-[#1a1815] mb-2">Want to leave a review?</p>
+          <p className="text-sm text-[#5a5550] mb-5">You need to be logged in to share your experience with this property.</p>
+          <Link href="/auth/login" className="inline-flex px-6 py-3 bg-[#1a1815] text-white rounded-xl text-sm font-bold hover:bg-[#2e2a25] active:scale-[0.98] transition-all duration-200 shadow-sm">
+            Login to Review
+          </Link>
+        </div>
+      ) : user && !hasReviewed && !submitted && (
         <form onSubmit={handleSubmit} className="mb-8 p-5 bg-[#f7f4f0] rounded-xl border border-[#e8e2db]">
           <p className="text-xs font-bold text-[#1a1815] uppercase tracking-wider mb-4">Write a Review</p>
           
@@ -183,7 +192,7 @@ export default function ReviewsSection({ propertyId }) {
             </div>
             <button
               type="submit"
-              disabled={submitting || rating === 0}
+              disabled={submitting}
               className="px-6 py-3 bg-[#1a1815] text-white rounded-xl text-sm font-bold hover:bg-[#2e2a25] transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {submitting ? 'Submitting…' : 'Submit Review'}

@@ -148,7 +148,7 @@ function DashboardPage() {
 
 export default function ProtectedDashboardPage() {
   return (
-    <ProtectedRoute allowedRoles={['owner']}>
+    <ProtectedRoute allowedRoles={['user', 'owner', 'admin']}>
       <DashboardPage />
     </ProtectedRoute>
   );

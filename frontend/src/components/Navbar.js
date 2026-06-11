@@ -29,31 +29,15 @@ export default function Navbar() {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8 lg:gap-10">
             <Link href="/" className="text-black hover:text-[#1a1815] transition-colors duration-300 text-sm font-medium">
-              Map
+              Explore
             </Link>
-            <Link href="/properties" className="text-black hover:text-[#1a1815] transition-colors duration-300 text-sm font-medium">
-              Properties
-            </Link>
+            
             {authIsOwner && (
-              <div className="relative group">
-                <Link href="/dashboard" className="text-black group-hover:text-[#1a1815] transition-colors duration-300 text-sm font-medium flex items-center gap-1">
-                  Dashboard
-                  <svg className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </Link>
-                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                  <div className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#e8e2db] p-1.5 w-40 flex flex-col">
-                    <Link href="/dashboard" className="px-3 py-2 text-sm font-medium text-[#1a1815] hover:bg-[#f7f4f0] rounded-lg transition-colors">
-                      My Listings
-                    </Link>
-                    <Link href="/dashboard/add-property" className="px-3 py-2 text-sm font-medium text-[#1a1815] hover:bg-[#f7f4f0] rounded-lg transition-colors">
-                      Add Property
-                    </Link>
-                  </div>
-                </div>
-              </div>
+              <Link href="/dashboard" className="text-black hover:text-[#1a1815] transition-colors duration-300 text-sm font-medium">
+                My Listings
+              </Link>
             )}
+            
             {authIsAdmin && (
               <Link href="/admin" className="text-black hover:text-[#1a1815] transition-colors duration-300 text-sm font-medium">
                 Admin
@@ -110,13 +94,9 @@ export default function Navbar() {
         {/* Mobile Menu */}
         {menuOpen && (
           <div className="md:hidden absolute top-16 right-4 w-56 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#e8e2db] p-3 flex flex-col gap-1 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-            <Link href="/" onClick={() => setMenuOpen(false)} className="px-4 py-3 text-[#1a1815] hover:bg-[#f7f4f0] rounded-xl text-center text-[15px] font-semibold transition-colors">Map</Link>
-            <Link href="/properties" onClick={() => setMenuOpen(false)} className="px-4 py-3 text-[#1a1815] hover:bg-[#f7f4f0] rounded-xl text-center text-[15px] font-semibold transition-colors">Properties</Link>
+            <Link href="/" onClick={() => setMenuOpen(false)} className="px-4 py-3 text-[#1a1815] hover:bg-[#f7f4f0] rounded-xl text-center text-[15px] font-semibold transition-colors">Explore</Link>
             {authIsOwner && (
-              <>
-                <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="px-4 py-3 text-[#1a1815] hover:bg-[#f7f4f0] rounded-xl text-center text-[15px] font-semibold transition-colors">My Listings</Link>
-                <Link href="/dashboard/add-property" onClick={() => setMenuOpen(false)} className="px-4 py-3 text-[#1a1815] hover:bg-[#f7f4f0] rounded-xl text-center text-[15px] font-semibold transition-colors">Add Property</Link>
-              </>
+              <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="px-4 py-3 text-[#1a1815] hover:bg-[#f7f4f0] rounded-xl text-center text-[15px] font-semibold transition-colors">My Listings</Link>
             )}
             {authIsAdmin && (
               <Link href="/admin" onClick={() => setMenuOpen(false)} className="px-4 py-3 text-[#1a1815] hover:bg-[#f7f4f0] rounded-xl text-center text-[15px] font-semibold transition-colors">Admin</Link>

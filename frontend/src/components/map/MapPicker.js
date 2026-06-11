@@ -2,6 +2,7 @@
 
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import { useState, useEffect } from 'react';
+import SearchBar from '@/components/explore/SearchBar';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet-defaulticon-compatibility';
@@ -90,24 +91,8 @@ export default function MapPicker({ value, onChange }) {
   const [detecting, setDetecting] = useState(false);
   const [showLocationWarning, setShowLocationWarning] = useState(false);
 
-  // Coordinate input
-  const [coordInput, setCoordInput] = useState('');
-  const [coordError, setCoordError] = useState('');
-
   const center = value?.lat != null && value?.lng != null ? [value.lat, value.lng] : [15.3173, 75.7139];
   const zoom = value?.lat != null && value?.lng != null ? 14 : 6;
-
-  // --- Apply Coordinates (decimal or DMS) ---
-  const handleApplyCoords = () => {
-    setCoordError('');
-    const coords = parseCoordinates(coordInput);
-    if (!coords) {
-      setCoordError('Invalid format. Try: 12.97, 77.59');
-      return;
-    }
-    onChange(coords);
-    setCoordInput('');
-  };
 
   function handleUseMyLocation() {
     if (!navigator.geolocation) return;
@@ -208,28 +193,12 @@ export default function MapPicker({ value, onChange }) {
         </p>
       )}
 
-      {/* Coordinate input — always visible */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm p-3 space-y-1.5">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder={"Enter coordinates (e.g. 12.9716, 77.5946)"}
-            value={coordInput}
-            onChange={(e) => { setCoordInput(e.target.value); setCoordError(''); }}
-            className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-          />
-          <button
-            type="button"
-            onClick={handleApplyCoords}
-            className="px-4 py-2 bg-gray-800 text-white text-xs font-semibold rounded-lg hover:bg-gray-900 whitespace-nowrap"
-          >
-            Apply
-          </button>
-        </div>
-        {coordError && (
-          <p className="text-[11px] text-red-500">{coordError}</p>
-        )}
-        <p className="text-[10px] text-gray-400">Decimal or DMS format supported</p>
+      {/* Search Bar */}
+      <div className="relative z-[1000] mb-2">
+        <SearchBar 
+          onLocationSelect={(loc) => onChange({ lat: loc.lat, lng: loc.lng })} 
+          onClear={() => {}}
+        />
       </div>
 
       {/* Map */}

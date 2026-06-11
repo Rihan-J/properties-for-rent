@@ -7,15 +7,9 @@ import api from '@/lib/api';
 import { getGoogleMapsUrl } from '@/lib/geo';
 import { getOptimizedImageUrl } from '@/lib/cloudinary';
 import { getPropertyPricing } from '@/lib/property';
-import MapSkeleton from '@/components/map/MapSkeleton';
 import PropertyDetailSkeleton from '@/components/skeletons/PropertyDetailSkeleton';
 import ReviewsSection from '@/components/ReviewsSection';
 import ProtectedRoute from '@/components/ProtectedRoute';
-
-const MapView = dynamic(() => import('@/components/map/MapView'), {
-  ssr: false,
-  loading: () => <MapSkeleton />,
-});
 
 // ─── Contact Reveal Component ───────────────────────────
 function ContactReveal({ property, pricing }) {
@@ -160,12 +154,8 @@ function PropertyDetailPanel() {
           {/* Map Section */}
           <div className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-6 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-4">Location</p>
-            <div className="w-full h-[300px] sm:h-[360px] rounded-xl overflow-hidden border border-[#e8e2db] shadow-sm">
-              <MapView
-                center={[p.latitude, p.longitude]}
-                zoom={15}
-                properties={[p]}
-              />
+            <div className="w-full flex items-center justify-center p-8 bg-[#f7f4f0] rounded-xl border border-[#e8e2db]">
+              <span className="text-4xl mb-2">📍</span>
             </div>
             <a
               href={getGoogleMapsUrl(p.latitude, p.longitude)}

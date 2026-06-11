@@ -312,13 +312,13 @@ function AddPropertyForm() {
                 <div className="bg-white rounded-2xl border border-[#e8e2db] p-6 space-y-5 shadow-sm">
                   <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black">02 — Booking Type</p>
                   <p className="text-xs text-black -mt-2">Select one or both pricing options</p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     <button
                       type="button"
-                      onClick={() => setBookingTypes(prev => prev.includes('hourly') ? prev.filter(t => t !== 'hourly') : [...prev, 'hourly'])}
-                      className={`relative px-4 py-3 rounded-xl border text-sm font-bold transition-all duration-200 ${bookingTypes.includes('hourly') ? 'bg-[#1a1815] text-white border-[#1a1815]' : 'bg-[#faf9f7] text-[#1a1815] border-[#e2ddd8] hover:border-[#b5936b]'}`}
+                      onClick={() => setBookingTypes(['hourly'])}
+                      className={`relative px-3 py-3 rounded-xl border text-sm font-bold transition-all duration-200 ${bookingTypes.includes('hourly') && bookingTypes.length === 1 ? 'bg-[#1a1815] text-white border-[#1a1815]' : 'bg-[#faf9f7] text-[#1a1815] border-[#e2ddd8] hover:border-[#b5936b]'}`}
                     >
-                      {bookingTypes.includes('hourly') && (
+                      {bookingTypes.includes('hourly') && bookingTypes.length === 1 && (
                         <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-emerald-400 rounded-full flex items-center justify-center">
                           <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                         </span>
@@ -327,15 +327,27 @@ function AddPropertyForm() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setBookingTypes(prev => prev.includes('daily') ? prev.filter(t => t !== 'daily') : [...prev, 'daily'])}
-                      className={`relative px-4 py-3 rounded-xl border text-sm font-bold transition-all duration-200 ${bookingTypes.includes('daily') ? 'bg-[#1a1815] text-white border-[#1a1815]' : 'bg-[#faf9f7] text-[#1a1815] border-[#e2ddd8] hover:border-[#b5936b]'}`}
+                      onClick={() => setBookingTypes(['daily'])}
+                      className={`relative px-3 py-3 rounded-xl border text-sm font-bold transition-all duration-200 ${bookingTypes.includes('daily') && bookingTypes.length === 1 ? 'bg-[#1a1815] text-white border-[#1a1815]' : 'bg-[#faf9f7] text-[#1a1815] border-[#e2ddd8] hover:border-[#b5936b]'}`}
                     >
-                      {bookingTypes.includes('daily') && (
+                      {bookingTypes.includes('daily') && bookingTypes.length === 1 && (
                         <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-emerald-400 rounded-full flex items-center justify-center">
                           <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                         </span>
                       )}
                       📅 Daily
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBookingTypes(['hourly', 'daily'])}
+                      className={`relative px-3 py-3 rounded-xl border text-sm font-bold transition-all duration-200 ${bookingTypes.length === 2 ? 'bg-[#1a1815] text-white border-[#1a1815]' : 'bg-[#faf9f7] text-[#1a1815] border-[#e2ddd8] hover:border-[#b5936b]'}`}
+                    >
+                      {bookingTypes.length === 2 && (
+                        <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-emerald-400 rounded-full flex items-center justify-center">
+                          <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        </span>
+                      )}
+                      🔄 Both
                     </button>
                   </div>
                   {bookingTypes.length === 2 && (
