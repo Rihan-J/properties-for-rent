@@ -206,6 +206,18 @@ function AccountSettingsContent() {
               <span>{user.phone}</span>
             </div>
           )}
+
+          <div className="pt-5 mt-5 border-t border-[#f0ece7]">
+            <button
+              onClick={() => { logout(); router.push('/'); }}
+              className="flex items-center justify-center w-full gap-2 px-5 py-3 text-sm font-bold text-black border border-[#e2ddd8] rounded-xl hover:bg-[#faf9f7] hover:border-[#b5936b] transition-all duration-200 active:scale-[0.98]"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* ── ADMIN: Support Editor ── */}
