@@ -36,6 +36,17 @@ export default function HomePage() {
   
   // Geolocation
   useEffect(() => {
+    const isInstagram = navigator.userAgent.includes('Instagram');
+    
+    // Fast-path for Instagram to bypass blocked permissions and use Shivamogga
+    if (isInstagram) {
+      const smgLoc = { lat: 13.9299, lng: 75.5681, name: 'Shivamogga' };
+      setUserLocation(smgLoc);
+      setLocation(smgLoc);
+      setGeoStatus('granted');
+      return;
+    }
+
     if (!navigator.geolocation) {
       setGeoStatus('denied');
       return;
