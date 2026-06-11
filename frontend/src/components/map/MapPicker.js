@@ -112,14 +112,34 @@ export default function MapPicker({ value, onChange }) {
         setShowLocationWarning(true);
       },
       (error) => {
+        if (error.code === 2 || error.code === 3) {
+          // Fallback to IP-based location if GPS times out or is unavailable
+          fetch('https://ipapi.co/json/')
+            .then(res => res.json())
+            .then(data => {
+              if (data.latitude && data.longitude) {
+                onChange({ lat: data.latitude, lng: data.longitude });
+                setGeoError('Used network location (GPS timed out). Please drag the map if needed.');
+                setShowLocationWarning(true);
+              } else {
+                setGeoError('Location request timed out. Please click on the map to set your location.');
+              }
+            })
+            .catch(() => {
+              setGeoError('Location request timed out. Please click on the map to set your location.');
+            })
+            .finally(() => {
+              setDetecting(false);
+            });
+          return;
+        }
+
         setDetecting(false);
         let msg = 'Could not detect your location. Please click on the map instead.';
         if (error.code === 1) msg = 'Location access denied. Please allow location access in your browser settings to use this feature.';
-        else if (error.code === 2) msg = 'Location information is unavailable at the moment. Please click on the map.';
-        else if (error.code === 3) msg = 'Location request timed out. Please click on the map to set your location.';
         setGeoError(msg);
       },
-      { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 }
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
     );
   }
 

@@ -47,10 +47,26 @@ export default function HomePage() {
         setLocation(loc);
         setGeoStatus('granted');
       },
-      () => {
+      (error) => {
+        if (error.code === 2 || error.code === 3) {
+          fetch('https://ipapi.co/json/')
+            .then(res => res.json())
+            .then(data => {
+              if (data.latitude && data.longitude) {
+                const loc = { lat: data.latitude, lng: data.longitude, name: data.city || 'Your Location' };
+                setUserLocation(loc);
+                setLocation(loc);
+                setGeoStatus('granted');
+              } else {
+                setGeoStatus('denied');
+              }
+            })
+            .catch(() => setGeoStatus('denied'));
+          return;
+        }
         setGeoStatus('denied');
       },
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 10000 }
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
     );
   }, []);
 
