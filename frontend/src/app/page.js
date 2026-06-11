@@ -69,22 +69,6 @@ export default function HomePage() {
         setGeoStatus('granted');
       },
       (error) => {
-        if (error.code === 2 || error.code === 3) {
-          fetch('https://ipapi.co/json/')
-            .then(res => res.json())
-            .then(data => {
-              if (data.latitude && data.longitude) {
-                const loc = { lat: data.latitude, lng: data.longitude, name: data.city || 'Your Location' };
-                setUserLocation(loc);
-                setLocation(loc);
-                setGeoStatus('granted');
-              } else {
-                setGeoStatus('denied');
-              }
-            })
-            .catch(() => setGeoStatus('denied'));
-          return;
-        }
         setGeoStatus('denied');
       },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
