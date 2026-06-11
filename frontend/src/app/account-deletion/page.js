@@ -5,7 +5,7 @@ export const metadata = {
 
 export default function AccountDeletionPage() {
   return (
-    <div className="min-h-[calc(100vh-64px)] px-4 py-12" style={{ backgroundColor: '#f7f4f0' }}>
+    <div className="min-h-screen px-4 py-12" style={{ backgroundColor: '#f7f4f0' }}>
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">

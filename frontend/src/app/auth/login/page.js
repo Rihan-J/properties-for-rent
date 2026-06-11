@@ -33,7 +33,7 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img src="/app-logo.jpeg" alt="Properties for Rentz" className="w-12 h-12 rounded-xl object-contain mx-auto mb-4" />

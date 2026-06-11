@@ -106,9 +106,9 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-[#f7f4f0] pb-20">
+    <div className="min-h-screen bg-[#f7f4f0] pb-20">
       {/* Header / Search Area */}
-      <div className="bg-white border-b border-[#e8e2db] sticky top-16 z-20 shadow-sm">
+      <div className="bg-white border-b border-[#e8e2db] sticky top-0 z-20 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">

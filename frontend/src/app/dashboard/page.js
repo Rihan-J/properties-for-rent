@@ -56,7 +56,7 @@ function DashboardPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16 min-h-[calc(100vh-64px)]">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16 min-h-screen">
       <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#e8e2db] pb-6">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-black mb-2">Dashboard</p>
