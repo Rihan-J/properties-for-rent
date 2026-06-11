@@ -132,6 +132,27 @@ export default function HomePage() {
     }
   }
 
+  function requestLocationAccess() {
+    setGeoStatus('detecting');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        const loc = { ...coords, name: 'Your Location' };
+        localStorage.setItem('user_precise_location', JSON.stringify(coords));
+        setUserLocation(loc);
+        setLocation(loc);
+        setGeoStatus('granted');
+        setShowLocationPrompt(false);
+      },
+      (error) => {
+        setLocation(DEFAULT_CENTER);
+        setGeoStatus('denied');
+        alert("Unable to access location. Please ensure it is enabled in your device/browser settings.");
+      },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f7f4f0] pb-20">
       {/* Header / Search Area */}
@@ -208,8 +229,14 @@ export default function HomePage() {
               Please turn on your location and refresh to see the exact properties available near you. We are currently showing a default location.
             </p>
             <button 
+              onClick={requestLocationAccess}
+              className="w-full bg-[#1a1815] text-white py-3 rounded-xl font-bold hover:bg-[#33312e] transition-colors mb-3"
+            >
+              Turn On Location
+            </button>
+            <button 
               onClick={() => setShowLocationPrompt(false)}
-              className="w-full bg-[#1a1815] text-white py-3 rounded-xl font-bold hover:bg-[#33312e] transition-colors"
+              className="w-full bg-transparent text-[#5a5550] py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors"
             >
               Continue with Default Location
             </button>
