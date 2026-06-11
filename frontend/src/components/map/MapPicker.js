@@ -96,11 +96,35 @@ export default function MapPicker({ value, onChange }) {
   const zoom = value?.lat != null && value?.lng != null ? 14 : 6;
 
   function handleUseMyLocation() {
-    if (!navigator.geolocation) return;
-
     setDetecting(true);
     setShowLocationWarning(false);
     setGeoError('');
+
+    const fallbackToIP = () => {
+      fetch('https://ipapi.co/json/')
+        .then(res => res.json())
+        .then(data => {
+          if (data.latitude && data.longitude) {
+            onChange({ lat: data.latitude, lng: data.longitude });
+            setGeoError('Used network location (GPS permission denied or unavailable). Please drag the map if needed.');
+            setShowLocationWarning(true);
+          } else {
+            setGeoError('Could not detect location. Please click on the map to set your location.');
+          }
+        })
+        .catch(() => {
+          setGeoError('Could not detect location. Please click on the map to set your location.');
+        })
+        .finally(() => {
+          setDetecting(false);
+        });
+    };
+
+    if (!navigator.geolocation) {
+      fallbackToIP();
+      return;
+    }
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const coords = {
@@ -112,32 +136,8 @@ export default function MapPicker({ value, onChange }) {
         setShowLocationWarning(true);
       },
       (error) => {
-        if (error.code === 2 || error.code === 3) {
-          // Fallback to IP-based location if GPS times out or is unavailable
-          fetch('https://ipapi.co/json/')
-            .then(res => res.json())
-            .then(data => {
-              if (data.latitude && data.longitude) {
-                onChange({ lat: data.latitude, lng: data.longitude });
-                setGeoError('Used network location (GPS timed out). Please drag the map if needed.');
-                setShowLocationWarning(true);
-              } else {
-                setGeoError('Location request timed out. Please click on the map to set your location.');
-              }
-            })
-            .catch(() => {
-              setGeoError('Location request timed out. Please click on the map to set your location.');
-            })
-            .finally(() => {
-              setDetecting(false);
-            });
-          return;
-        }
-
-        setDetecting(false);
-        let msg = 'Could not detect your location. Please click on the map instead.';
-        if (error.code === 1) msg = 'Location access denied. Please allow location access in your browser settings to use this feature.';
-        setGeoError(msg);
+        // Run IP fallback for ANY error (including code 1: permission denied, which Instagram/Safari often do)
+        fallbackToIP();
       },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
     );
