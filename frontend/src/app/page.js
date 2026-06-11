@@ -32,6 +32,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [geoStatus, setGeoStatus] = useState('detecting');
   const [isInstagramBrowser, setIsInstagramBrowser] = useState(false);
+  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
 
   const abortRef = useRef(null);
   
@@ -54,6 +55,7 @@ export default function HomePage() {
     if (!navigator.geolocation) {
       setLocation(DEFAULT_CENTER);
       setGeoStatus('denied');
+      setShowLocationPrompt(true);
       return;
     }
 
@@ -72,6 +74,7 @@ export default function HomePage() {
       (error) => {
         setLocation(DEFAULT_CENTER);
         setGeoStatus('denied');
+        setShowLocationPrompt(true);
       },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
     );
@@ -125,6 +128,7 @@ export default function HomePage() {
     } else {
       setLocation(DEFAULT_CENTER);
       setGeoStatus('denied');
+      setShowLocationPrompt(true);
     }
   }
 
@@ -191,6 +195,27 @@ export default function HomePage() {
           </div>
         )}
       </main>
+
+      {/* Location Prompt Modal */}
+      {showLocationPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 bg-[#fff8e6] text-[#e6b840] rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            </div>
+            <h3 className="text-xl font-bold text-[#1a1815] mb-2">Turn On Location</h3>
+            <p className="text-sm text-[#5a5550] mb-6">
+              Please turn on your location and refresh to see the exact properties available near you. We are currently showing a default location.
+            </p>
+            <button 
+              onClick={() => setShowLocationPrompt(false)}
+              className="w-full bg-[#1a1815] text-white py-3 rounded-xl font-bold hover:bg-[#33312e] transition-colors"
+            >
+              Continue with Default Location
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
