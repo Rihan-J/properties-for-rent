@@ -212,7 +212,7 @@ function AddPropertyForm() {
       await api.post('/properties', payload);
       setSuccess(true);
       setUploadProgress('');
-      setTimeout(() => router.push('/properties'), 1500);
+      setTimeout(() => router.push('/dashboard'), 1500);
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Failed to create property');
     } finally {
