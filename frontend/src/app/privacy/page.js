@@ -98,6 +98,72 @@ export default function PrivacyPage() {
             </ul>
           </section>
 
+          {/* Third-Party Services */}
+          <section>
+            <h2
+              className="text-xl font-semibold text-[#1a1815] mb-3"
+              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            >
+              Third-Party Services
+            </h2>
+            <p className="text-[15px] text-[#3d3a36] leading-relaxed mb-3">
+              We use the following third-party services to operate the platform. These services may process
+              your data as described below:
+            </p>
+            <ul className="space-y-2 text-[15px] text-[#3d3a36]">
+              <li className="flex items-start gap-3">
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b5936b] flex-shrink-0" />
+                <span><strong className="text-[#1a1815]">Cloudinary</strong> — stores and serves property images you upload. Images are hosted on Cloudinary&apos;s secure servers.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b5936b] flex-shrink-0" />
+                <span><strong className="text-[#1a1815]">Render</strong> — hosts our backend API servers. Your data is processed on Render&apos;s infrastructure.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b5936b] flex-shrink-0" />
+                <span><strong className="text-[#1a1815]">Vercel</strong> — hosts our website. Standard web server logs (IP address, browser type) may be collected.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b5936b] flex-shrink-0" />
+                <span><strong className="text-[#1a1815]">Neon (PostgreSQL)</strong> — our database provider where your account and listing data is stored securely.</span>
+              </li>
+            </ul>
+            <p className="text-[15px] text-[#3d3a36] leading-relaxed mt-3">
+              We do not sell or share your personal data with third parties for advertising or marketing purposes.
+            </p>
+          </section>
+
+          {/* Cookies & Tracking */}
+          <section>
+            <h2
+              className="text-xl font-semibold text-[#1a1815] mb-3"
+              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            >
+              Cookies &amp; Tracking
+            </h2>
+            <p className="text-[15px] text-[#3d3a36] leading-relaxed">
+              Our mobile application does not use cookies. On our website, we may use essential cookies
+              strictly necessary for authentication and session management. We do not use advertising cookies
+              or tracking pixels. No third-party analytics or advertising SDKs are embedded in our mobile application.
+            </p>
+          </section>
+
+          {/* Analytics */}
+          <section>
+            <h2
+              className="text-xl font-semibold text-[#1a1815] mb-3"
+              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            >
+              Analytics
+            </h2>
+            <p className="text-[15px] text-[#3d3a36] leading-relaxed">
+              We do not use any third-party analytics tools (such as Google Analytics or Firebase Analytics)
+              in our mobile application. We may collect basic server-side logs (such as API request counts
+              and error rates) solely for the purpose of maintaining and improving service reliability.
+              These logs do not contain personally identifiable information.
+            </p>
+          </section>
+
           {/* Security */}
           <section>
             <h2

@@ -10,6 +10,8 @@ import RootNavigator from './src/navigation/RootNavigator';
 import LoadingScreen from './src/components/LoadingScreen';
 import { navigationRef } from './src/config/api';
 
+import NetworkBanner from './src/components/NetworkBanner';
+
 export default function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
@@ -40,6 +42,7 @@ export default function App() {
             <NavigationContainer ref={navigationRef}>
               <StatusBar style="dark" />
               <RootNavigator />
+              <NetworkBanner />
             </NavigationContainer>
           </GeoProvider>
         </AuthProvider>

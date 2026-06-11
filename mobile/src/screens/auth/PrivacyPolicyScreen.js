@@ -52,6 +52,28 @@ export default function PrivacyPolicyScreen() {
         <View style={styles.bulletItem}><Text style={styles.bullet}>•</Text><Text style={styles.paragraph}>To send transactional emails</Text></View>
         <View style={styles.bulletItem}><Text style={styles.bullet}>•</Text><Text style={styles.paragraph}>To improve our services and fix technical issues</Text></View>
 
+        <Text style={styles.sectionTitle}>Third-Party Services</Text>
+        <Text style={styles.paragraph}>
+          We use the following third-party services to operate the platform:
+        </Text>
+        <View style={styles.bulletItem}><Text style={styles.bullet}>•</Text><Text style={styles.paragraph}><Text style={styles.bold}>Cloudinary</Text> — stores and serves property images you upload on secure servers.</Text></View>
+        <View style={styles.bulletItem}><Text style={styles.bullet}>•</Text><Text style={styles.paragraph}><Text style={styles.bold}>Render</Text> — hosts our backend API servers where your data is processed.</Text></View>
+        <View style={styles.bulletItem}><Text style={styles.bullet}>•</Text><Text style={styles.paragraph}><Text style={styles.bold}>Vercel</Text> — hosts our website with standard web server logging.</Text></View>
+        <View style={styles.bulletItem}><Text style={styles.bullet}>•</Text><Text style={styles.paragraph}><Text style={styles.bold}>Neon (PostgreSQL)</Text> — our database provider for secure data storage.</Text></View>
+        <Text style={styles.paragraph}>
+          We do not sell or share your personal data with third parties for advertising or marketing purposes.
+        </Text>
+
+        <Text style={styles.sectionTitle}>Cookies & Tracking</Text>
+        <Text style={styles.paragraph}>
+          Our mobile application does not use cookies. We do not use advertising cookies, tracking pixels, or any third-party analytics or advertising SDKs in our mobile application.
+        </Text>
+
+        <Text style={styles.sectionTitle}>Analytics</Text>
+        <Text style={styles.paragraph}>
+          We do not use any third-party analytics tools (such as Google Analytics or Firebase Analytics) in our mobile application. We may collect basic server-side logs solely for maintaining service reliability. These logs do not contain personally identifiable information.
+        </Text>
+
         <Text style={styles.sectionTitle}>Data Security</Text>
         <Text style={styles.paragraph}>
           Your password is hashed using industry-standard bcrypt encryption and is never stored in plain text.

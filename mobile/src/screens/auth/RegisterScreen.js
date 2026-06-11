@@ -152,6 +152,10 @@ export default function RegisterScreen() {
               <TouchableOpacity onPress={() => WebBrowser.openBrowserAsync('https://properties-for-rent.vercel.app/privacy')}>
                 <Text style={styles.termsLink}>Privacy Policy</Text>
               </TouchableOpacity>
+              <Text style={styles.termsText}> and </Text>
+              <TouchableOpacity onPress={() => WebBrowser.openBrowserAsync('https://properties-for-rent.vercel.app/terms')}>
+                <Text style={styles.termsLink}>Terms & Conditions</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
