@@ -76,7 +76,7 @@ export default function HomePage() {
         setGeoStatus('denied');
         setShowLocationPrompt(true);
       },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
     );
   }, []);
 
@@ -149,7 +149,7 @@ export default function HomePage() {
         setGeoStatus('denied');
         alert("Unable to access location. Please ensure it is enabled in your device/browser settings.");
       },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
     );
   }
 
