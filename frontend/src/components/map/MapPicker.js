@@ -90,6 +90,7 @@ const KARNATAKA_BOUNDS = [
 export default function MapPicker({ value, onChange }) {
   const [detecting, setDetecting] = useState(false);
   const [showLocationWarning, setShowLocationWarning] = useState(false);
+  const [geoError, setGeoError] = useState('');
 
   const center = value?.lat != null && value?.lng != null ? [value.lat, value.lng] : [15.3173, 75.7139];
   const zoom = value?.lat != null && value?.lng != null ? 14 : 6;
@@ -99,6 +100,7 @@ export default function MapPicker({ value, onChange }) {
 
     setDetecting(true);
     setShowLocationWarning(false);
+    setGeoError('');
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const coords = {
@@ -113,9 +115,9 @@ export default function MapPicker({ value, onChange }) {
         setDetecting(false);
         let msg = 'Could not detect your location. Please click on the map instead.';
         if (error.code === 1) msg = 'Location access denied. Please allow location access in your browser settings to use this feature.';
-        else if (error.code === 2) msg = 'Location information is unavailable at the moment.';
-        else if (error.code === 3) msg = 'Location request timed out. Please try again.';
-        alert(msg);
+        else if (error.code === 2) msg = 'Location information is unavailable at the moment. Please click on the map.';
+        else if (error.code === 3) msg = 'Location request timed out. Please click on the map to set your location.';
+        setGeoError(msg);
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
@@ -131,6 +133,14 @@ export default function MapPicker({ value, onChange }) {
 
   return (
     <div className="space-y-2">
+      {/* Geo Error */}
+      {geoError && (
+        <div className="p-3 mb-2 bg-red-50 border border-red-200 text-red-700 text-xs font-medium rounded-lg flex items-start gap-2">
+          <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+          <p>{geoError}</p>
+        </div>
+      )}
+
       {/* Action buttons */}
       <div className="flex flex-wrap gap-2">
         <button
