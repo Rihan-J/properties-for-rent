@@ -109,11 +109,15 @@ export default function MapPicker({ value, onChange }) {
         setDetecting(false);
         setShowLocationWarning(true);
       },
-      () => {
+      (error) => {
         setDetecting(false);
-        alert('Could not detect your location. Please click on the map instead.');
+        let msg = 'Could not detect your location. Please click on the map instead.';
+        if (error.code === 1) msg = 'Location access denied. Please allow location access in your browser settings to use this feature.';
+        else if (error.code === 2) msg = 'Location information is unavailable at the moment.';
+        else if (error.code === 3) msg = 'Location request timed out. Please try again.';
+        alert(msg);
       },
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   }
 
