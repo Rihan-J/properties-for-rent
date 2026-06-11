@@ -221,25 +221,35 @@ export default function HomePage() {
       {showLocationPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center animate-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 bg-[#fff8e6] text-[#e6b840] rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            </div>
-            <h3 className="text-xl font-bold text-[#1a1815] mb-2">Turn On Location</h3>
-            <p className="text-sm text-[#5a5550] mb-6">
-              Please turn on your location and refresh to see the exact properties available near you. We are currently showing a default location.
-            </p>
-            <button 
-              onClick={requestLocationAccess}
-              className="w-full bg-[#1a1815] text-white py-3 rounded-xl font-bold hover:bg-[#33312e] transition-colors mb-3"
-            >
-              Turn On Location
-            </button>
-            <button 
-              onClick={() => setShowLocationPrompt(false)}
-              className="w-full bg-transparent text-[#5a5550] py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors"
-            >
-              Continue with Default Location
-            </button>
+            {geoStatus === 'detecting' ? (
+              <div className="flex flex-col items-center justify-center py-6">
+                <div className="w-10 h-10 border-4 border-[#e2ddd8] border-t-[#1a1815] rounded-full animate-spin mb-4"></div>
+                <h3 className="text-xl font-bold text-[#1a1815] mb-2">Fetching Location...</h3>
+                <p className="text-sm text-[#5a5550]">Please allow location access when prompted by your browser.</p>
+              </div>
+            ) : (
+              <>
+                <div className="w-16 h-16 bg-[#fff8e6] text-[#e6b840] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                </div>
+                <h3 className="text-xl font-bold text-[#1a1815] mb-2">Turn On Location</h3>
+                <p className="text-sm text-[#5a5550] mb-6">
+                  Please turn on your location and refresh to see the exact properties available near you. We are currently showing a default location.
+                </p>
+                <button 
+                  onClick={requestLocationAccess}
+                  className="w-full bg-[#1a1815] text-white py-3 rounded-xl font-bold hover:bg-[#33312e] transition-colors mb-3"
+                >
+                  Turn On Location
+                </button>
+                <button 
+                  onClick={() => setShowLocationPrompt(false)}
+                  className="w-full bg-transparent text-[#5a5550] py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors"
+                >
+                  Continue with Default Location
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
