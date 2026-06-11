@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import api from '@/lib/api';
 import { getGoogleMapsUrl } from '@/lib/geo';
@@ -9,7 +9,7 @@ import { getOptimizedImageUrl } from '@/lib/cloudinary';
 import { getPropertyPricing } from '@/lib/property';
 import PropertyDetailSkeleton from '@/components/skeletons/PropertyDetailSkeleton';
 import ReviewsSection from '@/components/ReviewsSection';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/context/AuthContext';
 
 const PropertyMap = dynamic(() => import('@/components/map/PropertyMap'), {
   ssr: false,
@@ -20,8 +20,14 @@ const PropertyMap = dynamic(() => import('@/components/map/PropertyMap'), {
 function ContactReveal({ property, pricing }) {
   const [revealed, setRevealed] = useState(false);
   const [locked, setLocked] = useState(false);
+  const { user } = useAuth();
+  const router = useRouter();
 
   function handleReveal() {
+    if (!user) {
+      router.push(`/auth/login?redirect=${encodeURIComponent(`/properties/${property.id}`)}`);
+      return;
+    }
     if (locked) return;
     setLocked(true);
     setRevealed(true);
@@ -95,11 +101,7 @@ function ContactReveal({ property, pricing }) {
 
 // ─── Main Page ──────────────────────────────────────────
 export default function PropertyDetailPage() {
-  return (
-    <ProtectedRoute>
-      <PropertyDetailPanel />
-    </ProtectedRoute>
-  );
+  return <PropertyDetailPanel />;
 }
 
 function PropertyDetailPanel() {
