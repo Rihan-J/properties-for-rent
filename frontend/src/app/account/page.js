@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import api from '@/lib/api';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import SupportInfoCard from '@/components/SupportInfoCard';
 
 // ─── Admin Support Editor ───────────────────────────────
@@ -147,38 +147,6 @@ function AccountSettingsContent() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [confirmText, setConfirmText] = useState('');
-  
-  const hydrated = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
-
-  if (!hydrated) return null;
-
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-140px)] px-6">
-        <div className="w-20 h-20 bg-white rounded-2xl shadow-sm border border-[#e8e2db] flex items-center justify-center mb-6">
-          <img src="/app-logo.jpeg" alt="Logo" className="w-16 h-16 rounded-xl object-contain" />
-        </div>
-        <h1 className="text-3xl font-semibold text-[#1a1815] text-center mb-3" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-          Welcome to Properties for Rentz
-        </h1>
-        <p className="text-[#5a5550] text-center mb-8 max-w-sm">
-          Sign in to save favorites, list properties, and write reviews
-        </p>
-        <div className="w-full max-w-sm flex flex-col gap-3">
-          <Link href="/auth/login" className="w-full py-4 bg-[#1a1815] text-white font-bold text-center rounded-xl shadow-sm hover:bg-[#2e2a25] transition-all duration-200 active:scale-[0.98]">
-            Sign In
-          </Link>
-          <Link href="/auth/register" className="w-full py-4 bg-white text-[#1a1815] border border-[#e2ddd8] font-bold text-center rounded-xl hover:bg-[#f7f4f0] transition-all duration-200 active:scale-[0.98]">
-            Create Account
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   const role = user?.role;
   const isAdmin = role === 'admin';
@@ -334,5 +302,9 @@ function AccountSettingsContent() {
 }
 
 export default function AccountSettingsPage() {
-  return <AccountSettingsContent />;
+  return (
+    <ProtectedRoute allowedRoles={['user', 'owner', 'admin']}>
+      <AccountSettingsContent />
+    </ProtectedRoute>
+  );
 }

@@ -196,7 +196,7 @@ export default function MapExplorer() {
 
   // ─── Status badge info ────────────────────────────────
   function getStatusBadge() {
-    const isLocating = geo.isDetecting && initialLoading;
+    const isLocating = geo.isDetecting && !hasInitialized.current;
 
     if (isLocating) {
       return {
@@ -305,7 +305,7 @@ export default function MapExplorer() {
                 Location Access Needed
               </h3>
               <p className="text-sm text-black mb-6 leading-relaxed">
-                Please turn on your device&apos;s location and grant browser permissions to see the best properties near you.
+                Please turn on your device's location and grant browser permissions to see the best properties near you.
               </p>
               <div className="space-y-3">
                 <button
@@ -353,8 +353,8 @@ export default function MapExplorer() {
               <div className="apna-map-empty-icon">
                 <span className="text-2xl">👀</span>
               </div>
-              <h2 className="text-lg font-semibold text-[#1a1815]">We couldn&apos;t find stays nearby yet</h2>
-              <p className="text-sm text-black mt-1.5">But don&apos;t worry — there are great options just a little further away.</p>
+              <h2 className="text-lg font-semibold text-[#1a1815]">We couldn't find stays nearby yet</h2>
+              <p className="text-sm text-black mt-1.5">But don't worry — there are great options just a little further away.</p>
               <button
                 onClick={handleExplore}
                 className="inline-block mt-6 px-6 py-3 bg-[#1a1815] text-white text-sm font-bold rounded-xl hover:bg-[#2e2a25] hover:shadow-md transition-all duration-300 active:scale-[0.98]"
