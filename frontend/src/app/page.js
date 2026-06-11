@@ -31,12 +31,16 @@ export default function HomePage() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [geoStatus, setGeoStatus] = useState('detecting');
+  const [isInstagramBrowser, setIsInstagramBrowser] = useState(false);
 
   const abortRef = useRef(null);
   
   // Geolocation
   useEffect(() => {
     const isInstagram = navigator.userAgent.includes('Instagram');
+    if (isInstagram) {
+      setIsInstagramBrowser(true);
+    }
     
     // Fast-path for Instagram to bypass blocked permissions and use Shivamogga
     if (isInstagram) {
@@ -155,8 +159,15 @@ export default function HomePage() {
             </div>
             <RadiusFilter value={radius} onChange={setRadius} />
           </div>
-          
           <CategoryFilter selectedCategory={category} onSelectCategory={setCategory} />
+
+          {/* Instagram Warning Banner */}
+          {isInstagramBrowser && (
+            <div className="mt-2 p-3 bg-[#fff8e6] border border-[#f5e1a4] text-[#8a6b4a] text-xs font-medium rounded-xl flex items-start gap-2 shadow-sm">
+              <svg className="w-4 h-4 shrink-0 mt-0.5 text-[#e6b840]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <p>You are using Instagram's browser which blocks precise GPS. To find properties near your exact location, tap the 3 dots (⋮) in the top right and select <strong>Open in Chrome / Browser</strong>.</p>
+            </div>
+          )}
         </div>
       </div>
 
