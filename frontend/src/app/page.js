@@ -59,25 +59,33 @@ export default function HomePage() {
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        const loc = { ...coords, name: 'Your Location' };
-        
-        // Save precise location to localStorage so Add Property can use the exact same spot
-        localStorage.setItem('user_precise_location', JSON.stringify(coords));
-        
-        setUserLocation(loc);
-        setLocation(loc);
-        setGeoStatus('granted');
-      },
-      (error) => {
+    const checkPermissionAndFetch = async () => {
+      try {
+        if (navigator.permissions && navigator.permissions.query) {
+          const result = await navigator.permissions.query({ name: 'geolocation' });
+          if (result.state === 'granted') {
+            executeLocationCheck(false);
+          } else {
+            // 'prompt' or 'denied'
+            setLocation(DEFAULT_CENTER);
+            setGeoStatus('denied');
+            setShowLocationPrompt(true);
+          }
+        } else {
+          // Fallback if permissions API not available (like old Safari)
+          // We show the modal so we don't unexpectedly trigger the native prompt
+          setLocation(DEFAULT_CENTER);
+          setGeoStatus('denied');
+          setShowLocationPrompt(true);
+        }
+      } catch (err) {
         setLocation(DEFAULT_CENTER);
         setGeoStatus('denied');
         setShowLocationPrompt(true);
-      },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
-    );
+      }
+    };
+
+    checkPermissionAndFetch();
   }, []);
 
   const fetchProperties = useCallback(async () => {
@@ -133,7 +141,14 @@ export default function HomePage() {
   }
 
   function requestLocationAccess() {
-    setGeoStatus('detecting');
+    executeLocationCheck(true);
+  }
+
+  function executeLocationCheck(isManualClick = false) {
+    if (isManualClick) {
+      setGeoStatus('detecting');
+    }
+    
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -147,7 +162,12 @@ export default function HomePage() {
       (error) => {
         setLocation(DEFAULT_CENTER);
         setGeoStatus('denied');
-        alert("Unable to access location. Please ensure it is enabled in your device/browser settings.");
+        // Only alert if the user explicitly clicked the button
+        if (isManualClick) {
+          alert("Unable to access location. Please ensure it is enabled in your device/browser settings.");
+        } else {
+          setShowLocationPrompt(true);
+        }
       },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
     );
