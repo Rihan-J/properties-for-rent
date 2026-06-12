@@ -10,6 +10,20 @@ import EmptyState from '@/components/EmptyState';
 
 const DEFAULT_CENTER = { lat: 13.9299, lng: 75.5681, name: 'Shivamogga (default)' };
 
+const LOADING_MESSAGES = [
+  { title: "Finding the best stays...", subtitle: "We are fetching the latest properties near you." },
+  { title: "Scouting the neighborhood...", subtitle: "Looking for hidden gems in this area." },
+  { title: "Curating your options...", subtitle: "Almost there! Getting the best matches." },
+  { title: "Preparing your feed...", subtitle: "Filtering for the highest quality stays." }
+];
+
+const LOCATION_MESSAGES = [
+  { title: "Fetching Location...", subtitle: "Please allow location access when prompted by your browser." },
+  { title: "Pinpointing you...", subtitle: "Communicating with satellites..." },
+  { title: "Almost got it...", subtitle: "Just need to confirm your coordinates." },
+  { title: "Warming up the GPS...", subtitle: "This helps us find the best places around you." }
+];
+
 // Basic distance calculation for sorting
 function calculateDistance(lat1, lon1, lat2, lon2) {
   if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return Infinity;
@@ -33,6 +47,29 @@ export default function HomePage() {
   const [geoStatus, setGeoStatus] = useState('detecting');
   const [isInstagramBrowser, setIsInstagramBrowser] = useState(false);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
+
+  const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
+  const [locMsgIdx, setLocMsgIdx] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    if (loading) {
+      interval = setInterval(() => {
+        setLoadingMsgIdx(prev => (prev + 1) % LOADING_MESSAGES.length);
+      }, 2500);
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
+
+  useEffect(() => {
+    let interval;
+    if (geoStatus === 'detecting') {
+      interval = setInterval(() => {
+        setLocMsgIdx(prev => (prev + 1) % LOCATION_MESSAGES.length);
+      }, 2500);
+    }
+    return () => clearInterval(interval);
+  }, [geoStatus]);
 
   const abortRef = useRef(null);
   
@@ -217,8 +254,8 @@ export default function HomePage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-500">
             <div className="w-10 h-10 border-4 border-[#e2ddd8] border-t-[#1a1815] rounded-full animate-spin mb-6"></div>
-            <h3 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Finding the best stays...</h3>
-            <p className="text-sm text-[#5a5550]">We are fetching the latest properties near you.</p>
+            <h3 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{LOADING_MESSAGES[loadingMsgIdx].title}</h3>
+            <p className="text-sm text-[#5a5550]">{LOADING_MESSAGES[loadingMsgIdx].subtitle}</p>
           </div>
         ) : properties.length === 0 ? (
           <EmptyState 
@@ -244,8 +281,8 @@ export default function HomePage() {
             {geoStatus === 'detecting' ? (
               <div className="flex flex-col items-center justify-center py-6">
                 <div className="w-10 h-10 border-4 border-[#e2ddd8] border-t-[#1a1815] rounded-full animate-spin mb-4"></div>
-                <h3 className="text-xl font-bold text-[#1a1815] mb-2">Fetching Location...</h3>
-                <p className="text-sm text-[#5a5550]">Please allow location access when prompted by your browser.</p>
+                <h3 className="text-xl font-bold text-[#1a1815] mb-2">{LOCATION_MESSAGES[locMsgIdx].title}</h3>
+                <p className="text-sm text-[#5a5550]">{LOCATION_MESSAGES[locMsgIdx].subtitle}</p>
               </div>
             ) : (
               <>
