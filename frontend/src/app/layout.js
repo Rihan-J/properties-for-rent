@@ -1,4 +1,5 @@
 import './globals.css';
+import Script from 'next/script';
 import { AuthProvider } from '@/context/AuthContext';
 import { GeoProvider } from '@/context/GeoContext';
 import BottomNav from '@/components/BottomNav';
@@ -25,6 +26,15 @@ export default function RootLayout({ children }) {
             <BottomNav />
           </GeoProvider>
         </AuthProvider>
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-04CRYF22Q1" strategy="afterInteractive" />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-04CRYF22Q1');
+          `}
+        </Script>
       </body>
     </html>
   );
