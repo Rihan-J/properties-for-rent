@@ -321,6 +321,7 @@ body {
   position: relative;
   flex: 1;
   min-width: 0;
+  z-index: 50;
 }
 
 .apna-search-input-wrap {
