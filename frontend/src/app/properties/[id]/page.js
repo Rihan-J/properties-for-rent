@@ -44,6 +44,9 @@ function ContactReveal({ property, pricing }) {
   const whatsappMsg = encodeURIComponent(
     `Hi, I'm interested in: ${p.title} — ₹${pricing.amount.toLocaleString('en-IN')} ${pricing.unitLong}`
   );
+  
+  const cleanPhone = p.owner_phone ? p.owner_phone.replace(/[^0-9]/g, '') : '';
+  const waPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
 
   if (!revealed) {
     return (
@@ -95,7 +98,7 @@ function ContactReveal({ property, pricing }) {
       {/* WhatsApp */}
       {p.owner_phone && (
         <a
-          href={`https://wa.me/${p.owner_phone.replace(/[^0-9]/g, '')}?text=${whatsappMsg}`}
+          href={`https://wa.me/${waPhone}?text=${whatsappMsg}`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-3 px-6 py-4 bg-[#25D366] text-white rounded-xl shadow-sm hover:bg-[#128C7E] hover:shadow-md transition-all duration-300 active:scale-[0.98] font-semibold text-sm"
@@ -118,6 +121,8 @@ function PropertyDetailPanel() {
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
@@ -276,23 +281,53 @@ function PropertyDetailPanel() {
           {/* Map Section */}
           <div className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-6 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black mb-4">Location</p>
-            <PropertyMap lat={p.latitude} lng={p.longitude} />
-            <a
-              href={getGoogleMapsUrl(p.latitude, p.longitude)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#f7f4f0] text-[#1a1815] rounded-xl shadow-sm hover:shadow-md hover:bg-[#f0ece7] transition-all duration-300 active:scale-[0.98] text-sm font-bold border border-[#e2ddd8]"
-            >
-              <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              Open in Maps
-            </a>
+            {user ? (
+              <>
+                <PropertyMap lat={p.latitude} lng={p.longitude} />
+                <a
+                  href={getGoogleMapsUrl(p.latitude, p.longitude)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#f7f4f0] text-[#1a1815] rounded-xl shadow-sm hover:shadow-md hover:bg-[#f0ece7] transition-all duration-300 active:scale-[0.98] text-sm font-bold border border-[#e2ddd8]"
+                >
+                  <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Open in Maps
+                </a>
+              </>
+            ) : (
+              <div className="py-8 text-center bg-[#f7f4f0] rounded-xl border border-[#e2ddd8]">
+                <div className="w-12 h-12 bg-[#e8e2db] rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-xl">📍</span>
+                </div>
+                <p className="text-sm font-semibold text-[#1a1815] mb-4">Login to view exact location</p>
+                <button
+                  onClick={() => router.push(`/auth/login?redirect=/properties/${id}`)}
+                  className="px-6 py-2.5 bg-[#1a1815] text-white text-sm font-bold rounded-xl hover:bg-[#2e2a25] transition-colors"
+                >
+                  Login to View
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Reviews */}
-          <ReviewsSection propertyId={p.id} />
+          {user ? (
+            <ReviewsSection propertyId={p.id} />
+          ) : (
+            <div className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-6 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 text-center py-10">
+              <span className="text-3xl block mb-3">💬</span>
+              <p className="text-sm font-semibold text-[#1a1815] mb-4">Login to view and write reviews</p>
+              <button
+                onClick={() => router.push(`/auth/login?redirect=/properties/${id}`)}
+                className="px-6 py-2.5 bg-[#1a1815] text-white text-sm font-bold rounded-xl hover:bg-[#2e2a25] transition-colors inline-block"
+              >
+                Login to View Reviews
+              </button>
+            </div>
+          )}
 
         </div>
 
