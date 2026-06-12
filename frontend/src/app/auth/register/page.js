@@ -42,7 +42,7 @@ function RegisterContent() {
       await register(name, email, password, 'user', phone, accepted);
       const redirectUrl = searchParams.get('redirect');
       if (redirectUrl) {
-        router.push(redirectUrl);
+        router.replace(redirectUrl);
       } else {
         router.push('/');
       }

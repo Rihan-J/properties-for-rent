@@ -30,7 +30,7 @@ function ContactReveal({ property, pricing }) {
     
     // If not logged in, redirect to login page with return URL
     if (!user) {
-      router.push(`/auth/login?redirect=/properties/${id}`);
+      router.replace(`/auth/login?redirect=/properties/${id}`);
       return;
     }
 
@@ -304,7 +304,7 @@ function PropertyDetailPanel() {
                 </div>
                 <p className="text-sm font-semibold text-[#1a1815] mb-4">Login to view exact location</p>
                 <button
-                  onClick={() => router.push(`/auth/login?redirect=/properties/${id}`)}
+                  onClick={() => router.replace(`/auth/login?redirect=/properties/${id}`)}
                   className="px-6 py-2.5 bg-[#1a1815] text-white text-sm font-bold rounded-xl hover:bg-[#2e2a25] transition-colors"
                 >
                   Login to View
@@ -321,7 +321,7 @@ function PropertyDetailPanel() {
               <span className="text-3xl block mb-3">💬</span>
               <p className="text-sm font-semibold text-[#1a1815] mb-4">Login to view and write reviews</p>
               <button
-                onClick={() => router.push(`/auth/login?redirect=/properties/${id}`)}
+                onClick={() => router.replace(`/auth/login?redirect=/properties/${id}`)}
                 className="px-6 py-2.5 bg-[#1a1815] text-white text-sm font-bold rounded-xl hover:bg-[#2e2a25] transition-colors inline-block"
               >
                 Login to View Reviews

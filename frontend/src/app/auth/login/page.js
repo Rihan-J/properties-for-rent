@@ -26,7 +26,7 @@ function LoginContent() {
       await login(email, password);
       const redirectUrl = searchParams.get('redirect');
       if (redirectUrl) {
-        router.push(redirectUrl);
+        router.replace(redirectUrl);
       } else {
         router.push('/');
       }
