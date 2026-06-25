@@ -69,14 +69,16 @@ export default function SearchBar({ onLocationSelect, onClear, onDetectLocation,
     return () => clearTimeout(debounceRef.current);
   }, [query, searchLocation]);
 
-  // Hide toast after 8 seconds or on click
+  // Hide toast after 8 seconds or on click/touch
   useEffect(() => {
     const timer = setTimeout(() => setShowToast(false), 8000);
     const hideListener = () => setShowToast(false);
     window.addEventListener('click', hideListener, { capture: true });
+    window.addEventListener('touchstart', hideListener, { capture: true });
     return () => {
       clearTimeout(timer);
       window.removeEventListener('click', hideListener, { capture: true });
+      window.removeEventListener('touchstart', hideListener, { capture: true });
     };
   }, []);
 

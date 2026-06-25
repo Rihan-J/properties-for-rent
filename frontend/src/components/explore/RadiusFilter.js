@@ -18,12 +18,14 @@ export default function RadiusFilter({ value = "", onChange, disabled = false })
     window.addEventListener('hide-toasts', hideListener);
     window.addEventListener('show-radius-toast', showListener);
     window.addEventListener('click', hideListener, { capture: true });
+    window.addEventListener('touchstart', hideListener, { capture: true });
 
     return () => {
       clearTimeout(timer);
       window.removeEventListener('hide-toasts', hideListener);
       window.removeEventListener('show-radius-toast', showListener);
       window.removeEventListener('click', hideListener, { capture: true });
+      window.removeEventListener('touchstart', hideListener, { capture: true });
     };
   }, []);
 
