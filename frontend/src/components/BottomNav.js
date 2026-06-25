@@ -7,7 +7,7 @@ import { useSyncExternalStore } from 'react';
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   
   const hydrated = useSyncExternalStore(
     () => () => {},
@@ -62,7 +62,12 @@ export default function BottomNav() {
         )}
 
         {/* Account / Login Tab - Dynamic */}
-        {isLoggedOut ? (
+        {!hydrated || loading ? (
+          <div className="flex flex-col items-center justify-center w-16 gap-1.5 text-[#a39c94] opacity-50">
+            <div className="w-5 h-5 bg-[#e8e2db] rounded-full animate-pulse"></div>
+            <div className="w-8 h-2 bg-[#e8e2db] rounded-full animate-pulse"></div>
+          </div>
+        ) : isLoggedOut ? (
           <Link 
             href="/auth/login" 
             className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors ${pathname.startsWith('/auth') ? 'text-[#1a1815]' : 'text-[#a39c94] hover:text-[#5a5550]'}`}
