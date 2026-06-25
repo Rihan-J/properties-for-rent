@@ -39,14 +39,12 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 export default function HomePage() {
   const [userLocation, setUserLocation] = useState(null); // The actual GPS location
-  const [location, setLocation] = useState(null);
+  const [location, setLocation] = useState(DEFAULT_CENTER);
   const [radius, setRadius] = useState(20);
   const [category, setCategory] = useState('all');
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [geoStatus, setGeoStatus] = useState('detecting');
-  const [isInstagramBrowser, setIsInstagramBrowser] = useState(false);
-  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
+  const [geoStatus, setGeoStatus] = useState('searched');
 
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [locMsgIdx, setLocMsgIdx] = useState(0);
@@ -72,58 +70,6 @@ export default function HomePage() {
   }, [geoStatus]);
 
   const abortRef = useRef(null);
-  
-  // Geolocation
-  useEffect(() => {
-    const isInstagram = navigator.userAgent.includes('Instagram');
-    if (isInstagram) {
-      setIsInstagramBrowser(true);
-    }
-    
-    // Fast-path for Instagram to bypass blocked permissions and use Shivamogga
-    if (isInstagram) {
-      const smgLoc = { lat: 13.9299, lng: 75.5681, name: 'Shivamogga' };
-      setUserLocation(smgLoc);
-      setLocation(smgLoc);
-      setGeoStatus('granted');
-      return;
-    }
-
-    if (!navigator.geolocation) {
-      setLocation(DEFAULT_CENTER);
-      setGeoStatus('denied');
-      setShowLocationPrompt(true);
-      return;
-    }
-
-    const checkPermissionAndFetch = async () => {
-      try {
-        if (navigator.permissions && navigator.permissions.query) {
-          const result = await navigator.permissions.query({ name: 'geolocation' });
-          if (result.state === 'granted') {
-            executeLocationCheck(false);
-          } else {
-            // 'prompt' or 'denied'
-            setLocation(DEFAULT_CENTER);
-            setGeoStatus('denied');
-            setShowLocationPrompt(true);
-          }
-        } else {
-          // Fallback if permissions API not available (like old Safari)
-          // We show the modal so we don't unexpectedly trigger the native prompt
-          setLocation(DEFAULT_CENTER);
-          setGeoStatus('denied');
-          setShowLocationPrompt(true);
-        }
-      } catch (err) {
-        setLocation(DEFAULT_CENTER);
-        setGeoStatus('denied');
-        setShowLocationPrompt(true);
-      }
-    };
-
-    checkPermissionAndFetch();
-  }, []);
 
   const fetchProperties = useCallback(async () => {
     if (abortRef.current) abortRef.current.abort();
@@ -132,8 +78,7 @@ export default function HomePage() {
 
     setLoading(true);
     try {
-      const fetchRadius = geoStatus === 'denied' ? 1000 : radius;
-      const params = { lat: location.lat, lng: location.lng, radius: fetchRadius, limit: 50 };
+      const params = { lat: location.lat, lng: location.lng, radius, limit: 50 };
       if (category !== 'all') params.category = category;
 
       const res = await api.get('/properties/nearby', { params, signal: controller.signal });
@@ -173,8 +118,7 @@ export default function HomePage() {
       setGeoStatus('granted');
     } else {
       setLocation(DEFAULT_CENTER);
-      setGeoStatus('denied');
-      setShowLocationPrompt(true);
+      setGeoStatus('searched');
     }
   }
 
@@ -199,12 +143,9 @@ export default function HomePage() {
       },
       (error) => {
         setLocation(DEFAULT_CENTER);
-        setGeoStatus('denied');
-        // Only alert if the user explicitly clicked the button
+        setGeoStatus('searched');
         if (isManualClick) {
           alert("Unable to access location. Please ensure it is enabled in your device/browser settings.");
-        } else {
-          setShowLocationPrompt(true);
         }
       },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
@@ -222,6 +163,7 @@ export default function HomePage() {
               <SearchBar 
                 onLocationSelect={handleLocationSelect} 
                 onClear={handleClearLocation} 
+                onDetectLocation={requestLocationAccess}
               />
               <p className="text-[10px] text-gray-500 mt-1.5 px-2 font-medium tracking-wide uppercase">
                 Near: <span className="font-bold text-[#1a1815]">
@@ -233,21 +175,6 @@ export default function HomePage() {
           </div>
           <CategoryFilter selectedCategory={category} onSelectCategory={setCategory} />
 
-          {/* Instagram Warning Banner */}
-          {isInstagramBrowser && (
-            <div className="mt-2 p-3 bg-[#fff8e6] border border-[#f5e1a4] text-[#8a6b4a] text-xs font-medium rounded-xl flex items-start gap-2 shadow-sm">
-              <svg className="w-4 h-4 shrink-0 mt-0.5 text-[#e6b840]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <p>You are using Instagram's browser which blocks precise GPS. To find properties near your exact location, tap the 3 dots (⋮) in the top right and select <strong>Open in Chrome / Browser</strong>.</p>
-            </div>
-          )}
-
-          {/* Default Location Banner */}
-          {geoStatus === 'denied' && location?.name === DEFAULT_CENTER.name && !isInstagramBrowser && (
-            <div className="mt-2 p-3 bg-[#fff8e6] border border-[#f5e1a4] text-[#8a6b4a] text-xs font-medium rounded-xl flex items-start gap-2 shadow-sm">
-              <svg className="w-4 h-4 shrink-0 mt-0.5 text-[#e6b840]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <p>Showing default location. Turn on location and refresh to get exact location in explore.</p>
-            </div>
-          )}
         </div>
       </div>
 
@@ -269,9 +196,6 @@ export default function HomePage() {
           />
         ) : (
           <>
-            {geoStatus === 'denied' && (
-              <h2 className="text-xl font-bold text-[#1a1815] mb-4">Latest Properties in Karnataka</h2>
-            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {properties.map(prop => (
                 <PropertyCard key={prop.id} property={prop} />
@@ -280,43 +204,6 @@ export default function HomePage() {
           </>
         )}
       </main>
-
-      {/* Location Prompt Modal */}
-      {showLocationPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center animate-in zoom-in-95 duration-200">
-            {geoStatus === 'detecting' ? (
-              <div className="flex flex-col items-center justify-center py-6">
-                <div className="w-10 h-10 border-4 border-[#e2ddd8] border-t-[#1a1815] rounded-full animate-spin mb-4"></div>
-                <h3 className="text-xl font-bold text-[#1a1815] mb-2">{LOCATION_MESSAGES[locMsgIdx].title}</h3>
-                <p className="text-sm text-[#5a5550]">{LOCATION_MESSAGES[locMsgIdx].subtitle}</p>
-              </div>
-            ) : (
-              <>
-                <div className="w-16 h-16 bg-[#fff8e6] text-[#e6b840] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                </div>
-                <h3 className="text-xl font-bold text-[#1a1815] mb-2">Turn On Location</h3>
-                <p className="text-sm text-[#5a5550] mb-6">
-                  Please turn on your location and refresh to see the exact properties available near you. We are currently showing a default location.
-                </p>
-                <button 
-                  onClick={requestLocationAccess}
-                  className="w-full bg-[#1a1815] text-white py-3 rounded-xl font-bold hover:bg-[#33312e] transition-colors mb-3"
-                >
-                  Turn On Location
-                </button>
-                <button 
-                  onClick={() => setShowLocationPrompt(false)}
-                  className="w-full bg-transparent text-[#5a5550] py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors"
-                >
-                  Continue with Default Location
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

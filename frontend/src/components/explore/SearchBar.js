@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
  * Location search bar with Nominatim geocoding.
  * Debounced input, dropdown results, keyboard navigation.
  */
-export default function SearchBar({ onLocationSelect, onClear, disabled = false }) {
+export default function SearchBar({ onLocationSelect, onClear, onDetectLocation, disabled = false }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -172,6 +172,22 @@ export default function SearchBar({ onLocationSelect, onClear, disabled = false 
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-4 h-4">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
+          </button>
+        )}
+        {/* Near Me button */}
+        {onDetectLocation && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onDetectLocation(true);
+            }}
+            className="apna-search-clear text-lg"
+            style={{ right: (query && !loading) ? '40px' : '10px' }}
+            type="button"
+            title="Near Me"
+            aria-label="Detect my location"
+          >
+            📍
           </button>
         )}
       </div>

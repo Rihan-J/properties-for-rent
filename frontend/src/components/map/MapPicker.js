@@ -93,6 +93,7 @@ export default function MapPicker({ value, onChange }) {
   const [geoError, setGeoError] = useState('');
 
   // Automatically load precise location from Explore page if available
+  // Or request it directly to ensure we get an accurate location when adding a property
   useEffect(() => {
     if (!value?.lat) {
       try {
@@ -102,11 +103,15 @@ export default function MapPicker({ value, onChange }) {
           if (coords.lat && coords.lng) {
             // Drop pin automatically
             onChange(coords);
+            return;
           }
         }
       } catch (err) {
         // Ignore parse errors
       }
+      
+      // If no location was saved, ask for GPS permission since high intent
+      handleUseMyLocation();
     }
   }, []);
 
