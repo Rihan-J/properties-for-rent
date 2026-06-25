@@ -155,26 +155,33 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#f7f4f0] pb-20">
       <h1 className="sr-only">Properties for Rents</h1>
-      {/* Header / Search Area */}
-      <div className="bg-white border-b border-[#e8e2db] shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <SearchBar 
-                onLocationSelect={handleLocationSelect} 
-                onClear={handleClearLocation} 
-                onDetectLocation={requestLocationAccess}
-              />
-              <p className="text-[10px] text-gray-500 mt-1.5 px-2 font-medium tracking-wide uppercase">
-                Near: <span className="font-bold text-[#1a1815]">
-                  {geoStatus === 'detecting' ? 'Detecting...' : location?.name}
-                </span>
-              </p>
-            </div>
-            <RadiusFilter value={radius} onChange={setRadius} />
-          </div>
-          <CategoryFilter selectedCategory={category} onSelectCategory={setCategory} />
+      {/* Sticky Search Bar */}
+      <div className="bg-white sticky top-0 z-30 shadow-sm border-b border-[#e8e2db]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <SearchBar 
+            onLocationSelect={handleLocationSelect} 
+            onClear={handleClearLocation} 
+            onDetectLocation={requestLocationAccess}
+          />
+        </div>
+      </div>
 
+      {/* Scrolling Details (Near & Radius) */}
+      <div className="bg-[#fdfbf9] border-b border-[#e8e2db]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-row justify-between items-center gap-3">
+          <p className="text-[10px] text-gray-500 font-medium tracking-wide uppercase truncate pr-4">
+            Near: <span className="font-bold text-[#1a1815]">
+              {geoStatus === 'detecting' ? 'Detecting...' : location?.name}
+            </span>
+          </p>
+          <RadiusFilter value={radius} onChange={setRadius} />
+        </div>
+      </div>
+
+      {/* Sticky Category Filter */}
+      <div className="bg-white sticky top-[69px] z-20 shadow-sm border-b border-[#e8e2db]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <CategoryFilter selectedCategory={category} onSelectCategory={setCategory} />
         </div>
       </div>
 
