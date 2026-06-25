@@ -50,10 +50,18 @@ function dmsToDecimal(dms) {
   return decimal;
 }
 
-// --- Unified coordinate parser (DMS or decimal) ---
+// --- Unified coordinate parser (Google Maps link, DMS, or decimal) ---
 function parseCoordinates(input) {
   const trimmed = input.trim();
   if (!trimmed) return null;
+
+  // Google Maps URL format: https://www.google.com/maps/.../@13.9299,75.5681,15z
+  const gmapMatch = trimmed.match(/@([-.\d]+),([-.\d]+)/);
+  if (gmapMatch) {
+    const lat = parseFloat(gmapMatch[1]);
+    const lng = parseFloat(gmapMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
 
   // DMS format: 14°02'43.9"N 75°27'47.1"E
   if (trimmed.includes('°')) {
@@ -91,6 +99,7 @@ export default function MapPicker({ value, onChange }) {
   const [detecting, setDetecting] = useState(false);
   const [showLocationWarning, setShowLocationWarning] = useState(false);
   const [geoError, setGeoError] = useState('');
+  const [manualInput, setManualInput] = useState('');
 
   // Automatically load precise location from Explore page if available
   // Or request it directly to ensure we get an accurate location when adding a property
@@ -179,6 +188,17 @@ export default function MapPicker({ value, onChange }) {
     );
   }
 
+  function handleManualSubmit() {
+    const coords = parseCoordinates(manualInput);
+    if (coords) {
+      onChange(coords);
+      setGeoError('');
+      setManualInput('');
+    } else {
+      setGeoError('Could not parse coordinates. Please check the format or Google Maps link.');
+    }
+  }
+
   return (
     <div className="space-y-2">
       {/* Geo Error */}
@@ -188,6 +208,31 @@ export default function MapPicker({ value, onChange }) {
           <p>{geoError}</p>
         </div>
       )}
+
+      {/* Manual Coordinates / Google Maps Link */}
+      <div className="flex gap-2 mb-2">
+        <input
+          type="text"
+          value={manualInput}
+          onChange={(e) => setManualInput(e.target.value)}
+          placeholder="Paste Google Maps link or Lat,Lng here"
+          className="flex-1 px-3 py-2 text-sm border border-[#e8e2db] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#b5936b]"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleManualSubmit();
+            }
+          }}
+        />
+        <button
+          type="button"
+          onClick={handleManualSubmit}
+          disabled={!manualInput.trim()}
+          className="px-4 py-2 text-sm font-medium text-white bg-[#1a1815] rounded-lg hover:bg-[#2e2a25] disabled:opacity-50 transition-colors"
+        >
+          Apply
+        </button>
+      </div>
 
       {/* Action buttons */}
       <div className="flex flex-wrap gap-2">
