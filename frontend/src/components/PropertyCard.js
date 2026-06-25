@@ -55,11 +55,22 @@ export default function PropertyCard({ property, showDelete, onDelete, isDeletin
             {property.title}
           </h3>
 
-          {property.category && (
-            <span className="inline-block mt-1.5 text-[10px] font-bold text-[#8a6b4a] uppercase px-2 py-0.5 bg-[#fdf8f4] border border-[#f0ece7] rounded-md tracking-wider">
-              {property.category.replace('_', ' ')}
-            </span>
-          )}
+          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+            {(property.listing_type === 'sale' || property.category === 'site') ? (
+              <span className="inline-block text-[10px] font-bold text-emerald-700 uppercase px-2 py-0.5 bg-emerald-50 border border-emerald-200 rounded-md tracking-wider">
+                FOR SALE
+              </span>
+            ) : property.category !== 'lodge' ? (
+              <span className="inline-block text-[10px] font-bold text-blue-700 uppercase px-2 py-0.5 bg-blue-50 border border-blue-200 rounded-md tracking-wider">
+                FOR RENT
+              </span>
+            ) : null}
+            {property.category && (
+              <span className="inline-block text-[10px] font-bold text-[#8a6b4a] uppercase px-2 py-0.5 bg-[#fdf8f4] border border-[#f0ece7] rounded-md tracking-wider">
+                {property.category.replace('_', ' ')}
+              </span>
+            )}
+          </div>
 
           {distance ? (
             <p className="text-sm text-gray-500 mt-1.5 font-medium">

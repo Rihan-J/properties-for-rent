@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS properties (
   status VARCHAR(20) NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'approved', 'rejected')),
   category VARCHAR(30),
+  listing_type VARCHAR(20) DEFAULT 'rent' CHECK (listing_type IN ('rent', 'sale')),
   booking_type VARCHAR(20) CHECK (booking_type IN ('hourly', 'daily', 'both')),
   price_per_hour NUMERIC(12, 2),
   price_per_day NUMERIC(12, 2),

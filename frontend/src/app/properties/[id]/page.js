@@ -211,6 +211,22 @@ function PropertyDetailPanel() {
                 {p.owner_name && (
                   <p className="text-black text-sm font-medium mt-2">Listed by {p.owner_name}</p>
                 )}
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  {(p.listing_type === 'sale' || p.category === 'site') ? (
+                    <span className="inline-block text-[10px] font-bold text-emerald-700 uppercase px-2 py-0.5 bg-emerald-50 border border-emerald-200 rounded-md tracking-wider">
+                      FOR SALE
+                    </span>
+                  ) : p.category !== 'lodge' ? (
+                    <span className="inline-block text-[10px] font-bold text-blue-700 uppercase px-2 py-0.5 bg-blue-50 border border-blue-200 rounded-md tracking-wider">
+                      FOR RENT
+                    </span>
+                  ) : null}
+                  {p.category && (
+                    <span className="inline-block text-[10px] font-bold text-[#8a6b4a] uppercase px-2 py-0.5 bg-[#fdf8f4] border border-[#f0ece7] rounded-md tracking-wider">
+                      {p.category.replace('_', ' ')}
+                    </span>
+                  )}
+                </div>
                 {pricing.isFlexible && (
                   <span className="inline-flex items-center gap-1.5 mt-2 text-[10px] font-bold text-emerald-700 uppercase px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-full tracking-wider">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -239,7 +255,9 @@ function PropertyDetailPanel() {
                   <p className="text-[#1a1815] font-bold text-2xl tracking-tight">
                     ₹{pricing.amount.toLocaleString('en-IN')}
                   </p>
-                  <p className="text-black text-[10px] font-bold uppercase tracking-wider mt-0.5">{pricing.unitLong}</p>
+                  {pricing.unitLong && (
+                    <p className="text-black text-[10px] font-bold uppercase tracking-wider mt-0.5">{pricing.unitLong}</p>
+                  )}
                 </div>
               )}
             </div>

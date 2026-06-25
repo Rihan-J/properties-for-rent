@@ -128,7 +128,11 @@ function validateProperty(body) {
     errors.push('Phone must be a valid 10-15 digit number');
   }
 
-  const { area_sqft, price_per_sqft, total_price, municipal_status, revenue_type } = body;
+  const { area_sqft, price_per_sqft, total_price, municipal_status, revenue_type, listing_type } = body;
+
+  if (listing_type && !['rent', 'sale'].includes(listing_type)) {
+    errors.push('Listing type must be either rent or sale');
+  }
 
   if (area_sqft !== undefined && area_sqft !== null && (isNaN(Number(area_sqft)) || Number(area_sqft) <= 0)) {
     errors.push('Area (sqft) must be a positive number');

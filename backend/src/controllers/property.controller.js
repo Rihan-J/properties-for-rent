@@ -33,6 +33,7 @@ async function createProperty(req, res, next) {
       total_price,
       municipal_status,
       revenue_type,
+      listing_type,
     } = req.body;
 
     const owner_id = req.user.id;
@@ -82,12 +83,12 @@ async function createProperty(req, res, next) {
       `INSERT INTO properties (
          owner_id, title, description, price, latitude, longitude, image_url,
          dimensions, area_sqft, price_per_sqft, total_price,
-         municipal_status, revenue_type, category, booking_type, price_per_hour, price_per_day
+         municipal_status, revenue_type, category, booking_type, price_per_hour, price_per_day, listing_type
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
        RETURNING id, owner_id, title, description, price, latitude, longitude, image_url,
                  status, created_at, dimensions, area_sqft, price_per_sqft, total_price,
-                 municipal_status, revenue_type, category, booking_type, price_per_hour, price_per_day`,
+                 municipal_status, revenue_type, category, booking_type, price_per_hour, price_per_day, listing_type`,
       [
         owner_id,
         title.trim(),
@@ -106,6 +107,7 @@ async function createProperty(req, res, next) {
         booking_type || null,
         price_per_hour || null,
         price_per_day || null,
+        listing_type || 'rent'
       ]
     );
 
@@ -166,6 +168,7 @@ async function getProperties(req, res, next) {
          p.status,
          p.created_at,
          p.category,
+         p.listing_type,
          p.booking_type,
          p.price_per_hour,
          p.price_per_day,
@@ -226,6 +229,7 @@ async function getNearbyProperties(req, res, next) {
           p.longitude AS lng,
           p.image_url,
           p.category,
+          p.listing_type,
           p.booking_type,
           p.price_per_hour,
           p.price_per_day,
@@ -252,7 +256,7 @@ async function getNearbyProperties(req, res, next) {
             OR (p.category = 'lodge' AND (p.booking_type = $11 OR p.booking_type = 'both'))
           )
       )
-      SELECT id, title, price, lat, lng, image_url, category, booking_type, price_per_hour, price_per_day, distance_km,
+      SELECT id, title, price, lat, lng, image_url, category, listing_type, booking_type, price_per_hour, price_per_day, distance_km,
              COUNT(*) OVER() AS _total_count
       FROM nearby
       WHERE distance_km <= $7
@@ -295,6 +299,7 @@ async function getPropertyById(req, res, next) {
          p.image_url,
          p.status,
          p.created_at,
+         p.listing_type,
          p.dimensions,
          p.area_sqft,
          p.price_per_sqft,

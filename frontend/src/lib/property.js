@@ -67,11 +67,13 @@ export function getPropertyPricing(property) {
   }
 
   const amount = Number(property.price ?? 0);
+  const isSale = property.listing_type === 'sale' || property.category === 'site';
+
   return {
     amount,
-    unitShort: '/mo',
-    unitLong: 'per month',
-    label: `₹${amount.toLocaleString('en-IN')} / month`,
+    unitShort: isSale ? '' : '/mo',
+    unitLong: isSale ? '' : 'per month',
+    label: isSale ? `₹${amount.toLocaleString('en-IN')}` : `₹${amount.toLocaleString('en-IN')} / month`,
     isFlexible: false,
   };
 }

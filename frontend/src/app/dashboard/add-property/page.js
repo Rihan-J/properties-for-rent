@@ -71,6 +71,7 @@ function AddPropertyForm() {
   const router = useRouter();
   
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [listingType, setListingType] = useState('rent');
   const [bookingTypes, setBookingTypes] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -130,7 +131,9 @@ function AddPropertyForm() {
     }
     if (selectedCategory === 'site') {
       setPrice(''); 
+      setListingType('sale');
     } else {
+      setListingType('rent');
       setTotalPrice(''); 
       setPricePerSqft('');
     }
@@ -175,7 +178,7 @@ function AddPropertyForm() {
       if (bookingTypes.includes('hourly') && !pricePerHour) { setError('Price per hour is required for hourly lodge'); return; }
       if (bookingTypes.includes('daily') && !pricePerDay) { setError('Price per day is required for daily lodge'); return; }
     }
-    if (selectedCategory !== 'site' && selectedCategory !== 'lodge' && !price) { setError('Monthly Rent is required'); return; }
+    if (selectedCategory !== 'site' && selectedCategory !== 'lodge' && !price) { setError('Price is required'); return; }
     if (selectedCategory === 'site' && !areaSqft && !dimensions) { setError('Area or Dimensions is required for plots'); return; }
 
     setLoading(true);
@@ -187,6 +190,7 @@ function AddPropertyForm() {
       const isLodge = selectedCategory === 'lodge';
       const payload = {
         category: selectedCategory,
+        listing_type: listingType,
         title: title.trim(),
         description: description.trim() || null,
         price: selectedCategory === 'site'
@@ -415,9 +419,27 @@ function AddPropertyForm() {
               {/* ── card: pricing ── */}
               <div className="bg-white rounded-2xl border border-[#e8e2db] p-6 space-y-5 shadow-sm">
                 <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-black">{selectedCategory === 'lodge' ? '05 — Pricing' : '04 — Pricing'}</p>
+                
+                {['home', 'room', 'shop'].includes(selectedCategory) && (
+                  <div className="mb-4">
+                    <Section label="Listing Purpose">
+                      <div className="flex items-center gap-6 mt-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="listingType" value="rent" checked={listingType === 'rent'} onChange={() => setListingType('rent')} className="accent-black w-4 h-4 cursor-pointer" />
+                          <span className="text-sm font-medium text-black">For Rent</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="listingType" value="sale" checked={listingType === 'sale'} onChange={() => setListingType('sale')} className="accent-black w-4 h-4 cursor-pointer" />
+                          <span className="text-sm font-medium text-black">For Sale</span>
+                        </label>
+                      </div>
+                    </Section>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {selectedCategory !== 'site' && selectedCategory !== 'lodge' && (
-                    <Section label="Monthly Rent (₹)">
+                    <Section label={listingType === 'sale' ? "Total Price (₹)" : "Monthly Rent (₹)"}>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#b8b0a6] text-sm font-bold">₹</span>
                         <input
