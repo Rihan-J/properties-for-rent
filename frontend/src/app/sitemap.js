@@ -1,19 +1,42 @@
 export default async function sitemap() {
   const baseUrl = 'https://www.propertiesforrents.com';
 
-  // 1. Static Routes
-  const routes = ['', '/category/home', '/category/room', '/category/shop', '/category/pg', '/category/lodge', '/category/site'].map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date().toISOString(),
-    changeFrequency: 'daily',
-    priority: 1.0,
-  }));
+  // 1. Static Routes (only pages that actually exist)
+  const staticRoutes = [
+    {
+      url: baseUrl,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'daily',
+      priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'monthly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'monthly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/account-deletion`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'monthly',
+      priority: 0.2,
+    },
+  ];
 
   // 2. Dynamic Property Routes from Database
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-    // Using the public nearby endpoint with a massive radius to capture all listings in the region
-    const response = await fetch(`${apiUrl}/properties/nearby?lat=13.9299&lng=75.5681&radius=5000&limit=1000`, { cache: 'no-store' });
+    // Using the public nearby endpoint with a massive radius to capture all listings
+    const response = await fetch(
+      `${apiUrl}/properties/nearby?lat=13.9299&lng=75.5681&radius=5000&limit=1000`,
+      { cache: 'no-store' }
+    );
     const data = await response.json();
     
     // Fallback safely if API structure changes
@@ -26,9 +49,9 @@ export default async function sitemap() {
       priority: 0.8,
     }));
 
-    return [...routes, ...propertyRoutes];
+    return [...staticRoutes, ...propertyRoutes];
   } catch (error) {
     console.error('Failed to generate dynamic sitemap routes:', error);
-    return routes; // Fallback to static routes if backend fails
+    return staticRoutes; // Fallback to static routes if backend fails
   }
 }
