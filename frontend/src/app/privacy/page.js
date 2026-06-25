@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Privacy Policy — Properties for Rentz',
-  description: 'Learn how Properties for Rentz collects, uses, and protects your personal data.',
+  title: 'Privacy Policy — Properties for Rents',
+  description: 'Learn how Properties for Rents collects, uses, and protects your personal data.',
 };
 
 export default function PrivacyPage() {
@@ -9,9 +9,11 @@ export default function PrivacyPage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="w-12 h-12 bg-[#1a1815] rounded-xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-base" style={{ fontFamily: "'Cormorant Garamond', serif" }}>AS</span>
-          </div>
+          <img 
+            src="/app-logo.jpeg" 
+            alt="Properties for Rents" 
+            className="w-16 h-16 rounded-2xl object-cover shadow-sm mx-auto mb-4" 
+          />
           <h1
             className="text-3xl md:text-4xl font-semibold text-[#1a1815]"
             style={{ fontFamily: "'Cormorant Garamond', serif" }}
@@ -28,7 +30,7 @@ export default function PrivacyPage() {
           {/* Intro */}
           <section>
             <p className="text-[#3d3a36] leading-relaxed text-[15px]">
-              At Properties for Rentz, your privacy matters. This policy explains what personal information we collect,
+              At Properties for Rents, your privacy matters. This policy explains what personal information we collect,
               why we collect it, and how we keep it safe. By creating an account, you agree to the practices
               described below.
             </p>
@@ -77,7 +79,7 @@ export default function PrivacyPage() {
             <ul className="space-y-2 text-[15px] text-[#3d3a36]">
               <li className="flex items-start gap-3">
                 <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b5936b] flex-shrink-0" />
-                <span>To create and manage your Properties for Rentz account</span>
+                <span>To create and manage your Properties for Rents account</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b5936b] flex-shrink-0" />
@@ -244,7 +246,7 @@ export default function PrivacyPage() {
 
         {/* Footer note */}
         <p className="text-center text-xs text-[#9e968d] mt-8">
-          © 2026 Properties for Rentz. All rights reserved.
+          © 2026 Properties for Rents. All rights reserved.
         </p>
       </div>
     </div>

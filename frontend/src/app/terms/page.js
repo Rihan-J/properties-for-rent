@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Terms & Conditions — Properties for Rentz',
-  description: 'Read the Terms and Conditions governing your use of Properties for Rentz.',
+  title: 'Terms & Conditions — Properties for Rents',
+  description: 'Read the Terms and Conditions governing your use of Properties for Rents.',
 };
 
 export default function TermsPage() {
@@ -9,9 +9,11 @@ export default function TermsPage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="w-12 h-12 bg-[#1a1815] rounded-xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-base" style={{ fontFamily: "'Cormorant Garamond', serif" }}>PfR</span>
-          </div>
+          <img 
+            src="/app-logo.jpeg" 
+            alt="Properties for Rents" 
+            className="w-16 h-16 rounded-2xl object-cover shadow-sm mx-auto mb-4" 
+          />
           <h1
             className="text-3xl md:text-4xl font-semibold text-[#1a1815]"
             style={{ fontFamily: "'Cormorant Garamond', serif" }}
@@ -28,7 +30,7 @@ export default function TermsPage() {
           {/* Intro */}
           <section>
             <p className="text-[#3d3a36] leading-relaxed text-[15px]">
-              Welcome to Properties for Rentz. By creating an account or using our mobile application
+              Welcome to Properties for Rents. By creating an account or using our mobile application
               and website, you agree to be bound by these Terms &amp; Conditions. If you do not agree,
               please do not use the service.
             </p>
@@ -45,7 +47,7 @@ export default function TermsPage() {
             <ul className="space-y-2 text-[15px] text-[#3d3a36]">
               <li className="flex items-start gap-3">
                 <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b5936b] flex-shrink-0" />
-                <span><strong className="text-[#1a1815]">&quot;Service&quot;</strong> refers to the Properties for Rentz mobile application and website.</span>
+                <span><strong className="text-[#1a1815]">&quot;Service&quot;</strong> refers to the Properties for Rents mobile application and website.</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#b5936b] flex-shrink-0" />
@@ -169,7 +171,7 @@ export default function TermsPage() {
               6. Intellectual Property
             </h2>
             <p className="text-[15px] text-[#3d3a36] leading-relaxed">
-              All content, design, and functionality of the Service are the property of Properties for Rentz
+              All content, design, and functionality of the Service are the property of Properties for Rents
               and are protected by applicable intellectual property laws. You retain ownership of content you
               upload (such as property images and descriptions), but grant us a non-exclusive, worldwide,
               royalty-free license to display that content on the Service for the purpose of operating and
@@ -187,7 +189,7 @@ export default function TermsPage() {
             </h2>
             <p className="text-[15px] text-[#3d3a36] leading-relaxed">
               The Service is provided on an &quot;as is&quot; and &quot;as available&quot; basis. We do not guarantee
-              the accuracy, completeness, or reliability of any property listing. Properties for Rentz acts
+              the accuracy, completeness, or reliability of any property listing. Properties for Rents acts
               solely as a platform connecting property seekers and owners, and is not a party to any rental
               or sale transaction between users. We are not responsible for the condition, legality, or
               availability of any listed property.
@@ -203,7 +205,7 @@ export default function TermsPage() {
               8. Limitation of Liability
             </h2>
             <p className="text-[15px] text-[#3d3a36] leading-relaxed">
-              To the maximum extent permitted by law, Properties for Rentz shall not be liable for any
+              To the maximum extent permitted by law, Properties for Rents shall not be liable for any
               indirect, incidental, special, or consequential damages arising from your use of the Service,
               including but not limited to financial losses from property transactions, data loss, or
               unauthorized access to your account.
@@ -306,7 +308,7 @@ export default function TermsPage() {
 
         {/* Footer note */}
         <p className="text-center text-xs text-[#9e968d] mt-8">
-          © 2026 Properties for Rentz. All rights reserved.
+          © 2026 Properties for Rents. All rights reserved.
         </p>
       </div>
     </div>

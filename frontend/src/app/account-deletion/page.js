@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Account Deletion Request — Properties for Rentz',
-  description: 'Request deletion of your account and personal data from Properties for Rentz.',
+  title: 'Account Deletion Request — Properties for Rents',
+  description: 'Request deletion of your account and personal data from Properties for Rents.',
 };
 
 export default function AccountDeletionPage() {
@@ -9,9 +9,11 @@ export default function AccountDeletionPage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="w-12 h-12 bg-[#1a1815] rounded-xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-base" style={{ fontFamily: "'Cormorant Garamond', serif" }}>AS</span>
-          </div>
+          <img 
+            src="/app-logo.jpeg" 
+            alt="Properties for Rents" 
+            className="w-16 h-16 rounded-2xl object-cover shadow-sm mx-auto mb-4" 
+          />
           <h1
             className="text-3xl md:text-4xl font-semibold text-[#1a1815]"
             style={{ fontFamily: "'Cormorant Garamond', serif" }}
@@ -27,7 +29,7 @@ export default function AccountDeletionPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-[#e8e2db] p-8 md:p-10 space-y-8">
           <section>
             <p className="text-[#3d3a36] leading-relaxed text-[15px] mb-4">
-              At Properties for Rentz, you have the right to request the complete deletion of your account and all associated personal data.
+              At Properties for Rents, you have the right to request the complete deletion of your account and all associated personal data.
             </p>
             <p className="text-[#3d3a36] leading-relaxed text-[15px]">
               When your account is deleted, the following data will be permanently removed from our servers:
@@ -86,7 +88,7 @@ export default function AccountDeletionPage() {
 
         {/* Footer note */}
         <p className="text-center text-xs text-[#9e968d] mt-8">
-          © 2026 Properties for Rentz. All rights reserved.
+          © 2026 Properties for Rents. All rights reserved.
         </p>
       </div>
     </div>
