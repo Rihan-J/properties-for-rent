@@ -189,13 +189,18 @@ export default function MapPicker({ value, onChange }) {
   }
 
   function handleManualSubmit() {
+    if (manualInput.includes('maps.app.goo.gl') || manualInput.includes('goo.gl/maps')) {
+      setGeoError('Short links (maps.app.goo.gl) are not supported. Please open the link in your browser and copy the long URL or paste the raw coordinates.');
+      return;
+    }
+
     const coords = parseCoordinates(manualInput);
     if (coords) {
       onChange(coords);
       setGeoError('');
       setManualInput('');
     } else {
-      setGeoError('Could not parse coordinates. Please check the format or Google Maps link.');
+      setGeoError('Could not parse coordinates. Please check the format or ensure the Google Maps link contains @lat,lng.');
     }
   }
 
