@@ -181,10 +181,32 @@ export default function HomePage() {
       {/* Feed Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-500">
-            <div className="w-10 h-10 border-4 border-[#e2ddd8] border-t-[#1a1815] rounded-full animate-spin mb-6"></div>
-            <h3 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{LOADING_MESSAGES[loadingMsgIdx].title}</h3>
-            <p className="text-sm text-[#5a5550]">{LOADING_MESSAGES[loadingMsgIdx].subtitle}</p>
+          <div className="animate-in fade-in duration-500">
+            <div className="flex flex-col items-center justify-center pb-8 text-center">
+              <h3 className="text-2xl font-bold text-[#1a1815] mb-2 transition-all duration-300 animate-pulse" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                {LOADING_MESSAGES[loadingMsgIdx].title}
+              </h3>
+              <p className="text-sm text-[#5a5550] transition-all duration-300 animate-pulse">
+                {LOADING_MESSAGES[loadingMsgIdx].subtitle}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="bg-white rounded-3xl overflow-hidden border border-[#e8e2db] shadow-sm animate-pulse flex flex-col h-full">
+                  <div className="relative aspect-[4/3] w-full bg-gray-200"></div>
+                  <div className="p-5 flex-1">
+                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-3"></div>
+                    <div className="h-5 bg-gray-200 rounded-full w-16 mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 mt-1.5"></div>
+                  </div>
+                  <div className="px-5 pb-5 mt-auto">
+                    <div className="flex items-center justify-end pt-4 border-t border-[#f0ece7]">
+                      <div className="h-4 bg-gray-200 rounded w-16"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : properties.length === 0 ? (
           <EmptyState 
