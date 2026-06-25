@@ -40,7 +40,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 export default function HomePage() {
   const [userLocation, setUserLocation] = useState(null); // The actual GPS location
   const [location, setLocation] = useState(DEFAULT_CENTER);
-  const [radius, setRadius] = useState(20);
+  const [radius, setRadius] = useState(50); // Increased to cover whole Shimoga district
   const [category, setCategory] = useState('all');
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -12,6 +12,7 @@ export default function SearchBar({ onLocationSelect, onClear, onDetectLocation,
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [showToast, setShowToast] = useState(true);
   const containerRef = useRef(null);
   const inputRef = useRef(null);
   const debounceRef = useRef(null);
@@ -67,6 +68,12 @@ export default function SearchBar({ onLocationSelect, onClear, onDetectLocation,
     }, 500);
     return () => clearTimeout(debounceRef.current);
   }, [query, searchLocation]);
+
+  // Hide toast after 8 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => setShowToast(false), 8000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Close on outside click
   useEffect(() => {
@@ -176,19 +183,34 @@ export default function SearchBar({ onLocationSelect, onClear, onDetectLocation,
         )}
         {/* Near Me button */}
         {onDetectLocation && (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              onDetectLocation(true);
-            }}
-            className="apna-search-clear text-lg"
-            style={{ right: (query && !loading) ? '40px' : '10px' }}
-            type="button"
-            title="Near Me"
-            aria-label="Detect my location"
-          >
-            📍
-          </button>
+          <>
+            {showToast && (
+              <div 
+                className="absolute w-max bg-[#1a1815] text-white text-[11px] font-bold py-2 px-3 rounded-xl shadow-xl animate-bounce pointer-events-none z-50"
+                style={{ 
+                  right: (query && !loading) ? '30px' : '0px', 
+                  top: '110%'
+                }}
+              >
+                <div className="absolute -top-1 right-4 w-3 h-3 bg-[#1a1815] rotate-45 rounded-sm"></div>
+                📍 Click here to see properties near you!
+              </div>
+            )}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setShowToast(false);
+                onDetectLocation(true);
+              }}
+              className="apna-search-clear text-lg"
+              style={{ right: (query && !loading) ? '40px' : '10px' }}
+              type="button"
+              title="Near Me"
+              aria-label="Detect my location"
+            >
+              📍
+            </button>
+          </>
         )}
       </div>
 
