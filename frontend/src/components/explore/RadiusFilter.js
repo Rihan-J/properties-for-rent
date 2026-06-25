@@ -7,7 +7,12 @@ export default function RadiusFilter({ value = "", onChange, disabled = false })
 
   useEffect(() => {
     const timer = setTimeout(() => setShowToast(false), 8000);
-    return () => clearTimeout(timer);
+    const hideListener = () => setShowToast(false);
+    window.addEventListener('hide-toasts', hideListener);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('hide-toasts', hideListener);
+    };
   }, []);
 
   return (
@@ -15,9 +20,9 @@ export default function RadiusFilter({ value = "", onChange, disabled = false })
       {showToast && (
         <div 
           className="absolute w-max bg-[#1a1815] text-white text-[11px] font-bold py-2 px-3 rounded-xl shadow-xl animate-bounce pointer-events-none z-50"
-          style={{ left: '0px', top: '110%' }}
+          style={{ left: '105%', top: '50%', transform: 'translateY(-50%)' }}
         >
-          <div className="absolute -top-1 left-6 w-3 h-3 bg-[#1a1815] rotate-45 rounded-sm"></div>
+          <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-3 h-3 bg-[#1a1815] rotate-45 rounded-sm"></div>
           🎯 Click to adjust search range
         </div>
       )}

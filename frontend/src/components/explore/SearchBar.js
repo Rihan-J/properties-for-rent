@@ -69,10 +69,15 @@ export default function SearchBar({ onLocationSelect, onClear, onDetectLocation,
     return () => clearTimeout(debounceRef.current);
   }, [query, searchLocation]);
 
-  // Hide toast after 8 seconds
+  // Hide toast after 8 seconds or on custom event
   useEffect(() => {
     const timer = setTimeout(() => setShowToast(false), 8000);
-    return () => clearTimeout(timer);
+    const hideListener = () => setShowToast(false);
+    window.addEventListener('hide-toasts', hideListener);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('hide-toasts', hideListener);
+    };
   }, []);
 
   // Close on outside click
@@ -153,7 +158,10 @@ export default function SearchBar({ onLocationSelect, onClear, onDetectLocation,
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => results.length > 0 && setIsOpen(true)}
+          onFocus={() => {
+            window.dispatchEvent(new Event('hide-toasts'));
+            if (results.length > 0) setIsOpen(true);
+          }}
           placeholder="Search city, area, or location..."
           disabled={disabled}
           className="apna-search-input"
