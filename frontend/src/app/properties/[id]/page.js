@@ -155,8 +155,33 @@ function PropertyDetailPanel() {
   const p = property;
   const pricing = getPropertyPricing(p);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateListing",
+    "name": p.title,
+    "description": p.description || "",
+    "datePosted": p.created_at || new Date().toISOString(),
+    "offers": {
+      "@type": "Offer",
+      "price": p.price || pricing.amount,
+      "priceCurrency": "INR",
+      "priceValidUntil": "2027-12-31"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": p.city || "Shivamogga",
+      "addressRegion": "Karnataka",
+      "addressCountry": "IN"
+    }
+  };
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 lg:py-14">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 lg:py-14">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* LEFT COLUMN: Image */}
@@ -333,5 +358,6 @@ function PropertyDetailPanel() {
 
       </div>
     </div>
+    </>
   );
 }

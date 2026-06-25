@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 const CATEGORIES = [
   { id: 'all', label: 'All' },
   { id: 'home', label: 'Home' },
@@ -16,9 +18,13 @@ export default function CategoryFilter({ selectedCategory, onSelectCategory }) {
       {CATEGORIES.map((cat) => {
         const isActive = selectedCategory === cat.id;
         return (
-          <button
+          <Link
             key={cat.id}
-            onClick={() => onSelectCategory(cat.id)}
+            href={`/?category=${cat.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              onSelectCategory(cat.id);
+            }}
             className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 border
               ${isActive 
                 ? 'bg-[#1a1815] text-white border-[#1a1815] shadow-md shadow-[#1a1815]/20' 
@@ -27,7 +33,7 @@ export default function CategoryFilter({ selectedCategory, onSelectCategory }) {
             `}
           >
             {cat.label}
-          </button>
+          </Link>
         );
       })}
     </div>

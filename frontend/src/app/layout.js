@@ -5,8 +5,11 @@ import { GeoProvider } from '@/context/GeoContext';
 import BottomNav from '@/components/BottomNav';
 
 export const metadata = {
-  title: 'Properties for Rentz — Find Your Perfect Stay',
+  title: 'Properties For Rents | Homes, PGs, & Rooms',
   description: 'Discover and rent properties near you. Browse apartments, houses, PGs, and more on an interactive map.',
+  verification: {
+    google: "YOUR_PASTE_GSC_CODE_HERE", // Leave a placeholder comment for the user to add their actual token later
+  },
 };
 
 export default function RootLayout({ children }) {

@@ -132,7 +132,8 @@ export default function HomePage() {
 
     setLoading(true);
     try {
-      const params = { lat: location.lat, lng: location.lng, radius, limit: 50 };
+      const fetchRadius = geoStatus === 'denied' ? 1000 : radius;
+      const params = { lat: location.lat, lng: location.lng, radius: fetchRadius, limit: 50 };
       if (category !== 'all') params.category = category;
 
       const res = await api.get('/properties/nearby', { params, signal: controller.signal });
@@ -212,6 +213,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#f7f4f0] pb-20">
+      <h1 className="sr-only">Properties for Rents</h1>
       {/* Header / Search Area */}
       <div className="bg-white border-b border-[#e8e2db] sticky top-0 z-20 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
@@ -266,11 +268,16 @@ export default function HomePage() {
             actionOnClick={() => setRadius(50)}
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {properties.map(prop => (
-              <PropertyCard key={prop.id} property={prop} />
-            ))}
-          </div>
+          <>
+            {geoStatus === 'denied' && (
+              <h2 className="text-xl font-bold text-[#1a1815] mb-4">Latest Properties in Karnataka</h2>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {properties.map(prop => (
+                <PropertyCard key={prop.id} property={prop} />
+              ))}
+            </div>
+          </>
         )}
       </main>
 
