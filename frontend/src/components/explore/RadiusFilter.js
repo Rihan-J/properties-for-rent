@@ -6,12 +6,24 @@ export default function RadiusFilter({ value = "", onChange, disabled = false })
   const [showToast, setShowToast] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowToast(false), 8000);
+    let timer = setTimeout(() => setShowToast(false), 8000);
+    
     const hideListener = () => setShowToast(false);
+    const showListener = () => {
+      setShowToast(true);
+      clearTimeout(timer);
+      timer = setTimeout(() => setShowToast(false), 8000);
+    };
+
     window.addEventListener('hide-toasts', hideListener);
+    window.addEventListener('show-radius-toast', showListener);
+    window.addEventListener('click', hideListener, { capture: true });
+
     return () => {
       clearTimeout(timer);
       window.removeEventListener('hide-toasts', hideListener);
+      window.removeEventListener('show-radius-toast', showListener);
+      window.removeEventListener('click', hideListener, { capture: true });
     };
   }, []);
 

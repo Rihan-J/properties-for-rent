@@ -69,14 +69,14 @@ export default function SearchBar({ onLocationSelect, onClear, onDetectLocation,
     return () => clearTimeout(debounceRef.current);
   }, [query, searchLocation]);
 
-  // Hide toast after 8 seconds or on custom event
+  // Hide toast after 8 seconds or on click
   useEffect(() => {
     const timer = setTimeout(() => setShowToast(false), 8000);
     const hideListener = () => setShowToast(false);
-    window.addEventListener('hide-toasts', hideListener);
+    window.addEventListener('click', hideListener, { capture: true });
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('hide-toasts', hideListener);
+      window.removeEventListener('click', hideListener, { capture: true });
     };
   }, []);
 
@@ -209,6 +209,8 @@ export default function SearchBar({ onLocationSelect, onClear, onDetectLocation,
                 e.preventDefault();
                 setShowToast(false);
                 onDetectLocation(true);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => window.dispatchEvent(new Event('show-radius-toast')), 500);
               }}
               className="apna-search-clear text-lg"
               style={{ right: (query && !loading) ? '40px' : '10px' }}
