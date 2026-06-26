@@ -34,7 +34,7 @@ export default async function sitemap() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
     // Using the public nearby endpoint with a massive radius to capture all listings
     const response = await fetch(
-      `${apiUrl}/properties/nearby?lat=13.9299&lng=75.5681&radius=5000&limit=1000`,
+      `${apiUrl}/properties/nearby?lat=13.9299&lng=75.5681&radius=100&limit=50`,
       { cache: 'no-store' }
     );
     const data = await response.json();
