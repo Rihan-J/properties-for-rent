@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 import { Suspense } from 'react';
 
@@ -16,22 +17,32 @@ function LoginContent() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState(null);
+  const turnstileRef = React.useRef(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setLoading(true);
 
+    if (!turnstileToken) {
+      setError('Please complete the bot verification');
+      setLoading(false);
+      return;
+    }
+
     try {
-      await login(email, password);
+      await login(email, password, turnstileToken);
       const redirectUrl = searchParams.get('redirect');
-      if (redirectUrl) {
+      if (redirectUrl && redirectUrl.startsWith('/')) {
         router.replace(redirectUrl);
       } else {
         router.push('/');
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please try again.');
+      turnstileRef.current?.reset();
+      setTurnstileToken(null);
     } finally {
       setLoading(false);
     }
@@ -98,9 +109,20 @@ function LoginContent() {
             </div>
           </div>
 
+          <div className="flex justify-center mt-2">
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              onSuccess={(token) => setTurnstileToken(token)}
+              onError={() => setError('Bot verification failed.')}
+              onExpire={() => setTurnstileToken(null)}
+              options={{ action: 'turnstile-spin-v2' }}
+            />
+          </div>
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !turnstileToken}
             className="w-full py-3.5 bg-[#1a1815] text-white font-bold rounded-xl shadow-sm hover:bg-[#2e2a25] hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 disabled:cursor-not-allowed transition-all duration-300 text-sm mt-2"
           >
             {loading ? 'Signing in…' : 'Sign In'}

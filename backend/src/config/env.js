@@ -7,6 +7,9 @@ const required = [
   'CLOUDINARY_CLOUD_NAME',
   'CLOUDINARY_API_KEY',
   'CLOUDINARY_API_SECRET',
+  'TURNSTILE_SECRET',
+  'RESEND_API_KEY',
+  'FRONTEND_URL',
 ];
 
 for (const key of required) {
@@ -26,4 +29,9 @@ module.exports = {
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+  TURNSTILE_SECRET: process.env.TURNSTILE_SECRET,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  SMTP_EMAIL: process.env.SMTP_EMAIL,
+  SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000'
 };

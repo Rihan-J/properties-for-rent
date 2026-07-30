@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 import { Suspense } from 'react';
 
@@ -19,6 +20,10 @@ function RegisterContent() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState(null);
+  
+  // Ref for react-turnstile
+  const turnstileRef = React.useRef(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -31,6 +36,12 @@ function RegisterContent() {
       return;
     }
 
+    if (!turnstileToken) {
+      setError('Please complete the bot verification');
+      setLoading(false);
+      return;
+    }
+
     const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
     if (!strongPasswordRegex.test(password)) {
       setError("Password must be at least 8 characters and include uppercase, lowercase, number, and special character.");
@@ -39,15 +50,21 @@ function RegisterContent() {
     }
 
     try {
-      await register(name, email, password, 'user', phone, accepted);
+      await register(name, email, password, phone, accepted, turnstileToken);
+      
       const redirectUrl = searchParams.get('redirect');
-      if (redirectUrl) {
+      // If they came from a property page (e.g., clicked "Login to view contact"), send them back there
+      if (redirectUrl && redirectUrl.startsWith('/properties/')) {
         router.replace(redirectUrl);
       } else {
+        // Otherwise (even if they were trying to access /account), send them to Home
         router.push('/');
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      // Turnstile tokens are single-use. If server rejects, reset it for a new attempt.
+      turnstileRef.current?.reset();
+      setTurnstileToken(null);
     } finally {
       setLoading(false);
     }
@@ -181,9 +198,20 @@ function RegisterContent() {
             </span>
           </label>
 
+          <div className="flex justify-center mt-2">
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              onSuccess={(token) => setTurnstileToken(token)}
+              onError={() => setError('Bot verification failed.')}
+              onExpire={() => setTurnstileToken(null)}
+              options={{ action: 'turnstile-spin-v2' }}
+            />
+          </div>
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !turnstileToken}
             className="w-full py-3.5 bg-[#1a1815] text-white font-bold rounded-xl shadow-sm hover:bg-[#2e2a25] hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 disabled:cursor-not-allowed transition-all duration-300 text-sm mt-2"
           >
             {loading ? 'Creating account…' : 'Create Account'}

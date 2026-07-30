@@ -323,7 +323,15 @@ async function getPropertyById(req, res, next) {
       return fail(res, 'Property not found', 404);
     }
 
-    return success(res, { property: result.rows[0] });
+    const property = result.rows[0];
+
+    // Remove PII if user is not authenticated
+    if (!req.user) {
+      property.owner_email = null;
+      property.owner_phone = null;
+    }
+
+    return success(res, { property });
   } catch (err) {
     next(err);
   }

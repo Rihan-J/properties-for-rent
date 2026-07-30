@@ -33,4 +33,13 @@ services:
       - key: CORS_ORIGIN
         sync: false
 
+      - key: TURNSTILE_SECRET
+        sync: false
+
+      - key: RESEND_API_KEY
+        sync: false
+
+      - key: FRONTEND_URL
+        sync: false
+
     healthCheckPath: /api/health

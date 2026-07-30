@@ -17,6 +17,7 @@ function protect(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    
     req.user = { id: decoded.id, role: decoded.role };
     next();
   } catch (err) {
@@ -25,6 +26,24 @@ function protect(req, res, next) {
     }
     return fail(res, 'Invalid token', 401);
   }
+}
+
+/**
+ * Optional Auth: checks for JWT, sets req.user if valid, but never blocks.
+ */
+function optionalAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next();
+  }
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = { id: decoded.id, role: decoded.role };
+  } catch (err) {
+    // Ignore invalid/expired tokens for optional auth
+  }
+  next();
 }
 
 /**
@@ -40,4 +59,4 @@ function authorize(...roles) {
   };
 }
 
-module.exports = { protect, authorize };
+module.exports = { protect, authorize, optionalAuth };

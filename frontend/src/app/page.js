@@ -149,8 +149,15 @@ export default async function HomePage() {
       />
 
       {/* ─── SEO Hero Section (visible to Google & users) ─── */}
-      <section className="bg-gradient-to-b from-[#f7f4f0] to-[#fdfbf9] border-b border-[#e8e2db]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 text-center">
+      <section className="bg-white relative">
+        {/* Top Left Logo */}
+        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 lg:top-8 lg:left-8 z-10">
+          <a href="/" className="hover:opacity-80 transition-opacity block">
+            <img src="/app-logo.jpeg" alt="Properties For Rents Logo" className="h-12 sm:h-14 lg:h-16 w-auto object-contain" />
+          </a>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 pb-6 sm:pb-8 text-center">
           <h1
             className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1a1815] mb-4"
             style={{ fontFamily: "'Cormorant Garamond', serif" }}
@@ -161,16 +168,8 @@ export default async function HomePage() {
             Find <strong>homes</strong>, <strong>rooms</strong>, <strong>PGs</strong>,{' '}
             <strong>shops</strong>, and <strong>lodges for rent</strong> near you. Browse
             verified listings with photos, prices, and{' '}
-            <strong>direct owner contact</strong> — no brokerage, no middlemen.
+            <strong>direct owner contact</strong>.
           </p>
-          <div className="flex flex-wrap justify-center gap-3 mt-6 text-xs font-semibold text-[#8a6b4a]">
-            <span className="bg-[#fdf8f4] px-3 py-1.5 rounded-full border border-[#f0ece7]">🏠 Homes</span>
-            <span className="bg-[#fdf8f4] px-3 py-1.5 rounded-full border border-[#f0ece7]">🛏️ Rooms</span>
-            <span className="bg-[#fdf8f4] px-3 py-1.5 rounded-full border border-[#f0ece7]">🧑‍🎓 PGs</span>
-            <span className="bg-[#fdf8f4] px-3 py-1.5 rounded-full border border-[#f0ece7]">🏪 Shops</span>
-            <span className="bg-[#fdf8f4] px-3 py-1.5 rounded-full border border-[#f0ece7]">🏨 Lodges</span>
-            <span className="bg-[#fdf8f4] px-3 py-1.5 rounded-full border border-[#f0ece7]">🌍 Sites / Plots</span>
-          </div>
         </div>
       </section>
 

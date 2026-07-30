@@ -5,6 +5,8 @@ const cloudinary = require('cloudinary').v2;
 const { protect } = require('../middleware/auth');
 const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = require('../config/env');
 
+const { uploadLimiter } = require('../middleware/rateLimiter');
+
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: CLOUDINARY_CLOUD_NAME,
@@ -28,7 +30,7 @@ const upload = multer({
 });
 
 // Route to handle image uploads
-router.post('/', protect, upload.single('file'), async (req, res, next) => {
+router.post('/', protect, uploadLimiter, upload.single('file'), async (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, error: 'No image file provided' });
