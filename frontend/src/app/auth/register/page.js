@@ -201,7 +201,7 @@ function RegisterContent() {
           <div className="flex justify-center mt-2">
             <Turnstile
               ref={turnstileRef}
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()}
               onSuccess={(token) => setTurnstileToken(token)}
               onError={() => setError('Bot verification failed.')}
               onExpire={() => setTurnstileToken(null)}
