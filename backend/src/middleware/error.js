@@ -28,7 +28,13 @@ function errorHandler(err, req, res, next) {
     });
   }
 
-  const statusCode = err.statusCode || err.http_code || (err.name === 'MulterError' ? 413 : 500);
+  let statusCode = err.statusCode || err.http_code || (err.name === 'MulterError' ? 413 : 500);
+  
+  // Prevent third-party API 401/403s (like Cloudinary credentials failing) 
+  // from logging the user out in the frontend interceptor.
+  if (err.http_code && (statusCode === 401 || statusCode === 403)) {
+    statusCode = 502; // Bad Gateway (third party error)
+  }
 
   res.status(statusCode).json({
     success: false,
