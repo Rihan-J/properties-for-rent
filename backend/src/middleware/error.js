@@ -28,11 +28,11 @@ function errorHandler(err, req, res, next) {
     });
   }
 
-  const statusCode = err.statusCode || 500;
+  const statusCode = err.statusCode || err.http_code || (err.name === 'MulterError' ? 413 : 500);
 
   res.status(statusCode).json({
     success: false,
-    error: statusCode === 500 ? 'Internal server error' : err.message,
+    error: err.message || 'Internal server error',
   });
 }
 
